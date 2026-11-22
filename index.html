@@ -118,7 +118,7 @@ function speakLesson(uid, n){
   let done = false;
   const fb = () => { if (!done) { done = true; tts(text); } };
   const a = new Audio(`audio/${uid}-lec${n}.wav`);   // si existe el audio de VoiceStudio, se usa
-  a.playbackRate = 0.85;   // velocidad más lenta y clara para aprender
+  a.playbackRate = 0.8;   // velocidad más lenta y clara para aprender
   a.onerror = fb;
   a.play().catch(fb);
 }
