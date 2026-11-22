@@ -1,4 +1,4 @@
-const CACHE = 'mi-ingles-v10';
+const CACHE = 'mi-ingles-v11';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
