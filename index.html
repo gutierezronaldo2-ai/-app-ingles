@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mi inglés</title>
+<meta name="theme-color" content="#7c5cff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mi inglés">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--bg:#f4f6ff;--card:#fff;--ink:#1d2350;--muted:#6b72a1;--a:#7c5cff;--ok:#1fbf75;--bad:#ff5c7a}
 *{box-sizing:border-box}
@@ -322,6 +329,11 @@ function render(){
 }
 window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/exam')) EX = null; render(); });
 render();
+
+// Modo app: permite instalarla y usarla sin conexión
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
