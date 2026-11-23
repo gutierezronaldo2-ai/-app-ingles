@@ -69,6 +69,29 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .inst li{margin:6px 0;line-height:1.45}
 .btn.grande{display:block;width:100%;font-size:18px;padding:14px 16px;margin:10px 0}
 .btn.chico{font-size:13px;padding:6px 12px}
+.glos-bus{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 6px;margin-bottom:6px}
+.glos-bus input{display:block;width:100%;padding:12px;font-size:17px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit}
+.glos-bus input:focus{outline:none;border-color:var(--a)}
+.grow{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.grow:last-child{border-bottom:0}
+.gbody{flex:1;min-width:0;overflow-wrap:anywhere}
+.glinks{margin-top:4px}
+.glinks .dorigen{display:inline-block;margin:0 10px 4px 0}
+.oir{flex:none;background:var(--soft);border:0;border-radius:10px;min-width:36px;min-height:36px;font-size:16px;cursor:pointer}
+.esc-txt{display:block;width:100%;min-height:150px;margin:10px 0 6px;padding:12px;font-size:18px;line-height:1.5;border:2px solid var(--line);border-radius:12px;background:var(--soft2);color:var(--ink);font-family:inherit;resize:vertical}
+.esc-txt:focus{outline:none;border-color:var(--a)}
+.semgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 12px}
+.semnum{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 2px 10px var(--shadow);text-align:center}
+.semnum b{display:block;font-size:28px;color:var(--a)}
+.semnum span{font-size:13px;color:var(--muted)}
+.semsug{font-size:17px;margin:0 0 10px}
+.parte{padding:12px 14px}
+.parte.cerrada{opacity:.75}
+.parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.parte-cab h3{margin:0;font-size:16px}
+.parte .bar.mini{margin:6px 0 10px}
+.mbarra{display:inline-block;width:26px;height:8px;border-radius:99px;background:var(--soft);overflow:hidden;vertical-align:middle;margin-right:4px}
+.mbarra i{display:block;width:50%;height:100%;background:var(--ok)}
 .mapa{position:relative;margin:6px 0 10px}
 .mapa svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
 .mapa path{fill:none;stroke:var(--line);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 9;vector-effect:non-scaling-stroke}
@@ -194,7 +217,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '29';   // igual que la caché mi-ingles-v29 en sw.js
+const APP_VERSION = '30';   // igual que la caché mi-ingles-v30 en sw.js
 const Q = {};
 let EX = null;
 
@@ -417,6 +440,70 @@ function repShow(uid, n){
     <p class="pcap">Dijiste: ${esc(said.trim())}</p>`;
 }
 
+// ---------- escucha y escribe (dictado de la lectura; se guarda en S.escucha, dentro del progreso que ya se sube a la nube y a la copia) ----------
+const ESC_OK = 80;
+let ESC_ULT = null;   // último texto comprobado: {key, c}
+function escMejor(uid, n){ const v = (S.escucha || {})[uid + '-' + n]; return v === undefined ? null : v; }
+function escEstadoTexto(uid, n){
+  const b = escMejor(uid, n);
+  return b === null ? '' : (b >= ESC_OK ? `✅ Escucha superada · mejor: ${b}%` : `Mejor intento: ${b}%`);
+}
+function escBlock(uid, n){
+  if (!lectureText(uid, n)) return '';
+  return `<div class="rep" id="esc">
+    <div class="rep-title">✍️ Escucha y escribe</div>
+    <p class="pcap">Escucha la lectura y escribe lo que oyes. Puedes escucharla otra vez cuantas veces quieras.</p>
+    <button class="btn" id="esc-ini" onclick="escIniciar('${uid}',${n})">✍️ Escucha y escribe</button>
+    <div id="esc-panel" class="hide">
+      <textarea id="esc-txt" class="esc-txt" rows="7" placeholder="Escribe aquí lo que oyes..." autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Lo que oyes"></textarea>
+      <button class="btn ghost" id="esc-otra" onclick="escOir('${uid}',${n})">▶ Escuchar otra vez</button>
+      <button class="btn" id="esc-comp" onclick="escComprobar('${uid}',${n})">Comprobar</button>
+    </div>
+    <div class="fb bad" id="esc-err" role="status"></div>
+    <div id="esc-out" aria-live="polite"></div>
+    <div class="pcap" id="esc-best">${escEstadoTexto(uid, n)}</div>
+  </div>`;
+}
+function escOir(uid, n){
+  const err = document.getElementById('esc-err'); if (err) err.textContent = '';
+  try {
+    if (CUR_AUDIO) { try { CUR_AUDIO.pause(); } catch(e){} }
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    const a = new Audio(`audio/${uid}-lec${n}.wav`);     // el mismo audio de la lectura, a la misma velocidad
+    CUR_AUDIO = a;
+    a.playbackRate = 0.8;
+    const fallo = err => {
+      if (CUR_AUDIO !== a || (err && err.name === 'AbortError')) return;        // un audio que se cambió por otro no es un fallo
+      const e = document.getElementById('esc-err'); if (e) e.textContent = 'No se pudo reproducir el audio';
+    };
+    a.onerror = () => fallo();
+    const r = a.play();
+    if (r && r.catch) r.catch(fallo);
+  } catch(e){ const x = document.getElementById('esc-err'); if (x) x.textContent = 'No se pudo reproducir el audio'; }
+}
+function escIniciar(uid, n){
+  const panel = document.getElementById('esc-panel'), b = document.getElementById('esc-ini');
+  if (panel) panel.classList.remove('hide');
+  if (b) b.classList.add('hide');
+  escOir(uid, n);
+  const t = document.getElementById('esc-txt'); if (t) { try { t.focus({preventScroll: true}); } catch(e){} }
+}
+function escComprobar(uid, n){
+  const out = document.getElementById('esc-out'), txt = document.getElementById('esc-txt');
+  const dicho = txt ? txt.value : '';
+  if (!dicho.trim()) { out.innerHTML = '<p class="fb bad">Escribe primero lo que oyes.</p>'; return; }
+  const c = compareSpeech(lectureText(uid, n), dicho);
+  const key = uid + '-' + n;
+  S.escucha = S.escucha || {};
+  if (S.escucha[key] === undefined || c.score > S.escucha[key]) { S.escucha[key] = c.score; touch(); save(); }   // guarda el mejor intento; no toca el resto del progreso
+  const ok = c.score >= ESC_OK;
+  const words = c.tokens.map(x => `<span class="w ${x.ok ? 'ok' : 'bad'}">${esc(x.t)}</span>`).join(' ');
+  out.innerHTML = `<div class="score ${ok ? 'ok' : 'bad'}">${c.score}%</div><p class="pcap">de palabras acertadas</p>
+    <div class="rep-text">${words}</div>
+    ${ok ? '<p class="fb ok">✅ ¡Escucha superada!</p>' : '<p class="fb bad">¡Casi! Escucha otra vez y vuelve a intentarlo, sin límite.</p>'}`;
+  const best = document.getElementById('esc-best'); if (best) best.textContent = escEstadoTexto(uid, n);
+}
+
 // ---------- sonidos de acierto y fallo (Web Audio, sin archivos de audio) ----------
 const SONIDO_KEY = 'mi-ingles-silencio';          // clave nueva y aparte del progreso: '1' = silenciado; por defecto suena
 let SILENCIO = false;
@@ -524,7 +611,7 @@ function answer(id, val){
     box.querySelector('.nextbtn').classList.remove('hide');
   } else {
     if (right) {
-      S.done[q.key] = true; touch(); save();
+      fechaLeccion(q.key); S.done[q.key] = true; touch(); save();
       fb.className = 'fb ok'; fb.textContent = '¡Muy bien! ✅ Ejercicio completado.';
     } else {
       fb.className = 'fb bad'; fb.textContent = 'La respuesta correcta es: ' + q.answer + '. Lee otra vez la lección.';
@@ -677,6 +764,89 @@ function quitarDificil(i){
   window.scrollTo(0, y);
 }
 
+// ---------- glosario por nivel (usa la misma lista de palabras difíciles: DIF) ----------
+const GLOS_CACHE = {};
+let GLOS_Q = '';
+function normBusq(t){ return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function glosarioNivel(code){      // palabras únicas del nivel, en orden alfabético, con todas sus apariciones
+  if (GLOS_CACHE[code]) return GLOS_CACHE[code];
+  const mapa = new Map();
+  UNITS.forEach(u => {
+    if (u.level !== code) return;
+    u.lessons.forEach(l => {
+      vocabPalabras(u.id, l.n).forEach(x => {
+        if (!x.w) return;
+        const k = x.w.trim().toLowerCase();
+        let e = mapa.get(k);
+        if (!e) { e = {w: x.w, ts: [], occ: []}; mapa.set(k, e); }
+        if (x.t && e.ts.indexOf(x.t) < 0) e.ts.push(x.t);
+        if (!e.occ.some(o => o.uid === u.id && o.n === l.n)) e.occ.push({uid: u.id, num: u.num, n: l.n, w: x.w});
+      });
+    });
+  });
+  const L = [...mapa.values()].map(e => ({w: e.w, t: e.ts.join(' / '), occ: e.occ, bus: normBusq(e.w + ' ' + e.ts.join(' '))}));
+  L.sort((a, b) => a.w.localeCompare(b.w, 'en', {sensitivity: 'base'}) || a.w.localeCompare(b.w));
+  return GLOS_CACHE[code] = L;
+}
+function glosOn(e){ return e.occ.some(o => difIdx(o.uid, o.n, o.w) >= 0); }
+function glosFila(code, e, i){
+  const on = glosOn(e);
+  const links = e.occ.map(o => `<button type="button" class="dorigen" onclick="go('#/lesson/${o.uid}/${o.n}')">U${o.num} · L${o.n}</button>`).join('');
+  return `<div class="grow"><button type="button" class="star ${on ? 'on' : ''}" aria-pressed="${on}" aria-label="Palabra difícil: ${esc(e.w)}" title="${on ? 'Quitar de difíciles' : 'Marcar como difícil'}" onclick="glosEstrella('${code}',${i},this)">${on ? '★' : '☆'}</button>
+    <div class="gbody"><div><b>${esc(e.w)}</b>${e.t ? ' — ' + esc(e.t) : ''}</div><div class="glinks">${links}</div></div>
+    <button type="button" class="oir" aria-label="Escuchar: ${esc(e.w)}" title="Escuchar" onclick="glosOir('${code}',${i})">🔊</button></div>`;
+}
+function glosLista(code){
+  const L = glosarioNivel(code), q = normBusq(GLOS_Q.trim());
+  const filas = [];
+  L.forEach((e, i) => { if (!q || e.bus.indexOf(q) >= 0) filas.push(glosFila(code, e, i)); });
+  return {n: filas.length, html: filas.length ? filas.join('') : '<p class="pcap">No hay ninguna palabra con eso</p>'};
+}
+function glosFiltrar(code, v){
+  GLOS_Q = v;
+  const r = glosLista(code);
+  const el = document.getElementById('glos-lista'), c = document.getElementById('glos-n');
+  if (el) el.innerHTML = r.html;
+  if (c) c.textContent = r.n + ' de ' + glosarioNivel(code).length + ' palabras';
+}
+function glosEstrella(code, i, btn){
+  const e = glosarioNivel(code)[i]; if (!e) return;
+  const quitar = glosOn(e);
+  e.occ.forEach(o => {                       // marcar/quitar en todas las lecciones del nivel donde aparece
+    const j = difIdx(o.uid, o.n, o.w);
+    if (quitar) { if (j >= 0) DIF.splice(j, 1); }
+    else if (j < 0) DIF.push({uid: o.uid, n: o.n, w: o.w, t: (e.t.split(' / ')[0] || '')});
+  });
+  guardarDif();
+  const on = !quitar;
+  btn.textContent = on ? '★' : '☆';
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.title = on ? 'Quitar de difíciles' : 'Marcar como difícil';
+}
+function glosOir(code, i){
+  try {
+    const e = glosarioNivel(code)[i];
+    if (!e || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return;
+    tts(e.w);
+  } catch(err){}
+}
+function viewGlosarioNiveles(){
+  const btns = DATA.levels.map(l => `<button class="btn grande ghost" onclick="go('#/glosario/${l.code}')">${l.icon || ''} ${l.code} · ${esc(l.name)} <span class="pcap">(${glosarioNivel(l.code).length} palabras)</span></button>`).join('');
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>📖 Glosario</h2><p class="pcap">Elige un nivel para ver su vocabulario.</p>${btns}`;
+}
+function viewGlosario(code){
+  const lv = DATA.levels.find(l => l.code === code);
+  if (!lv) return viewGlosarioNiveles();
+  GLOS_Q = '';
+  const r = glosLista(code);
+  return `<div class="crumb" onclick="go('#/glosario')">← Glosario</div>
+    <h2>${lv.icon || ''} ${code} · ${esc(lv.name)}</h2>
+    <div class="glos-bus"><input type="search" id="glos-q" placeholder="Buscar en inglés o en español" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Buscar palabra" oninput="glosFiltrar('${code}',this.value)">
+      <div class="pcap" id="glos-n">${r.n} de ${glosarioNivel(code).length} palabras</div></div>
+    <div class="card" id="glos-lista">${r.html}</div>`;
+}
+
 // ---------- mis errores (clave nueva y aparte del progreso y de las palabras difíciles) ----------
 const ERR_KEY = 'mi-ingles-errores';   // lista de {id, uid, n, q:{stem, options, answer}}; n = nº de lección, o 0 si es del examen
 let ERR = [];
@@ -691,6 +861,7 @@ function errId(ref, q){ return ref.n > 0 ? ref.uid + '|L' + ref.n : ref.uid + '|
 function registrarError(ref, q, right){
   try {
     const id = errId(ref, q), i = ERR.findIndex(e => e.id === id);
+    if (!right) contarFallo(id, ref, q);
     if (right) { if (i >= 0) { ERR.splice(i, 1); guardarErr(); } }                       // acertada: sale de la lista
     else if (i < 0) { ERR.push({id, uid: ref.uid, n: ref.n, q: {stem: q.stem, options: q.options.slice(), answer: q.answer}}); guardarErr(); }
   } catch(e){}
@@ -774,6 +945,7 @@ function repasoSiguiente(){
 function terminarRepaso(){
   if (!REP || REP.fin) return;
   REP.fin = true;
+  fechaRepaso();
   try { localStorage.setItem(REPASO_KEY, JSON.stringify({fecha: fechaHoy(), aciertos: REP.score, total: REP.items.length})); } catch(e){}
 }
 function viewRepaso(){
@@ -792,6 +964,81 @@ function viewRepaso(){
   return `<div class="crumb" onclick="go('#/')">← Menú</div>
     <div class="card"><h2>🔁 Repaso de hoy · pregunta ${REP.i + 1} de ${REP.items.length}</h2>
     <div class="pcap" style="margin-bottom:8px">${errOrigen({uid: x.ref.uid, n: x.ref.n})}</div>${quiz(x.q, 'repaso', null, x.ref)}</div>`;
+}
+
+// ---------- mi semana: fechas de lecciones, exámenes y repasos (S.fechas) y veces que se falla cada pregunta (S.fallos) ----------
+// Van dentro del progreso (S), así viajan con él a la nube y a la copia de seguridad. Lo hecho antes de esta versión no tiene fecha.
+function fechasS(){
+  if (!S.fechas || typeof S.fechas !== 'object' || Array.isArray(S.fechas)) S.fechas = {};
+  const f = S.fechas;
+  if (!f.lec || typeof f.lec !== 'object' || Array.isArray(f.lec)) f.lec = {};
+  if (!Array.isArray(f.rep)) f.rep = [];
+  if (!f.exa || typeof f.exa !== 'object' || Array.isArray(f.exa)) f.exa = {};
+  return f;
+}
+function fechaLeccion(key){ try { if (!S.done[key]) fechasS().lec[key] = fechaHoy(); } catch(e){} }   // solo la primera vez que se completa
+function fechaExamen(uid){ try { fechasS().exa[uid] = fechaHoy(); } catch(e){} }
+function fechaRepaso(){ try { const f = fechasS(), h = fechaHoy(); if (f.rep.indexOf(h) < 0) { f.rep.push(h); save(); } } catch(e){} }
+function contarFallo(id, ref, q){
+  try {
+    if (!S.fallos || typeof S.fallos !== 'object' || Array.isArray(S.fallos)) S.fallos = {};
+    const x = S.fallos[id] || (S.fallos[id] = {c: 0, uid: ref.uid, n: ref.n, stem: q.stem});
+    x.c++; save();
+  } catch(e){}
+}
+function diasSemana(){        // los últimos 7 días, de hoy hacia atrás, como AAAA-MM-DD
+  const out = [], z = n => String(n).padStart(2, '0'), b = new Date();
+  for (let k = 0; k < 7; k++) { const d = new Date(b.getFullYear(), b.getMonth(), b.getDate() - k); out.push(d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate())); }
+  return out;
+}
+function resumenSemana(){
+  const dias = diasSemana(), en = new Set(dias), f = fechasS();
+  const activos = new Set();
+  let lecciones = 0;
+  Object.keys(f.lec).forEach(k => { if (S.done[k] && en.has(f.lec[k])) { lecciones++; activos.add(f.lec[k]); } });
+  const antiguas = Object.keys(S.done).filter(k => S.done[k] && !f.lec[k]).length;
+  const repasos = new Set(f.rep.filter(d => en.has(d)));
+  repasos.forEach(d => activos.add(d));
+  Object.keys(f.exa).forEach(u => { if (S.passed[u] && en.has(f.exa[u])) activos.add(f.exa[u]); });
+  const st = S.streak || {last: '', count: 0};
+  const z = n => String(n).padStart(2, '0');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(st.last || '') && st.count > 0) {           // los días de la racha también son días de estudio
+    const [y, m, d] = st.last.split('-').map(Number);
+    for (let k = 0; k < st.count && k < 7; k++) { const t = new Date(y, m - 1, d - k); const c = t.getFullYear() + '-' + z(t.getMonth() + 1) + '-' + z(t.getDate()); if (en.has(c)) activos.add(c); }
+  }
+  const racha = (st.last === dias[0] || st.last === dias[1]) ? st.count : 0;
+  return {dias, activos: activos.size, racha, lecciones, antiguas, repasos: repasos.size};
+}
+function topFallos(){
+  const m = new Map();
+  Object.keys(S.fallos || {}).forEach(id => { const x = S.fallos[id]; if (x && U(x.uid) && x.c > 0) m.set(id, {id, c: x.c, uid: x.uid, n: x.n, stem: x.stem, pend: false}); });
+  ERR.forEach(e => { if (!U(e.uid)) return; const x = m.get(e.id); if (x) x.pend = true; else m.set(e.id, {id: e.id, c: 1, uid: e.uid, n: e.n, stem: e.q.stem, pend: true}); });   // errores guardados antes de contar: al menos 1
+  return [...m.values()].sort((a, b) => (b.c - a.c) || ((b.pend ? 1 : 0) - (a.pend ? 1 : 0)) || a.stem.localeCompare(b.stem)).slice(0, 5);
+}
+function siguienteUnidadMapa(){ for (let i = 0; i < UNITS.length; i++) if (!S.passed[UNITS[i].id] && unlocked(i)) return UNITS[i]; return null; }
+function viewSemana(){
+  const r = resumenSemana(), nErr = errOrdenadas().length, nDif = difOrdenadas().length, top = topFallos();
+  const num = (n, t) => `<div class="semnum"><b>${n}</b><span>${t}</span></div>`;
+  const vacio = r.activos === 0;
+  let sug;
+  if (vacio) sug = '';
+  else if (nErr) sug = `<p class="semsug">Repasa tus errores: tienes ${nErr} pendientes</p><button class="btn" onclick="go('#/errores')">❌ Ver mis errores</button>`;
+  else { const u = siguienteUnidadMapa();
+    sug = u ? `<p class="semsug">Buen trabajo: ¿seguimos con la unidad ${u.num} (${esc(u.level)} · ${esc(u.title)})?</p><button class="btn" onclick="go('#/unit/${u.id}')">Ir a la unidad ${u.num}</button>`
+            : '<p class="semsug">Buen trabajo: has aprobado todas las unidades.</p>'; }
+  const topHtml = top.length ? top.map(x => `<div class="errrow"><div class="stem">${esc(x.stem)}</div>
+      <p class="corr"><b>${x.c} ${x.c === 1 ? 'vez' : 'veces'}</b> fallada${x.pend ? ' · ❌ pendiente' : ''}</p>
+      <button type="button" class="dorigen" onclick="go('${x.n ? '#/lesson/' + x.uid + '/' + x.n : '#/exam/' + x.uid}')">${errOrigen(x)}</button></div>`).join('')
+    : '<p class="pcap">Todavía no has fallado ninguna pregunta.</p>';
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>📊 Mi semana</h2>
+    <p class="pcap">Últimos 7 días, hoy incluido.</p>
+    ${vacio ? `<div class="card center"><p class="semsug">Esta semana no has estudiado. Empieza con un repaso de 5 minutos</p><button class="btn" onclick="go('#/repaso')">🔁 Repaso de hoy</button></div>` : ''}
+    <div class="semgrid">${num(r.activos + ' de 7', 'días con actividad')}${num(r.racha, r.racha === 1 ? 'día de racha' : 'días de racha')}
+      ${num(r.lecciones, 'lecciones completadas')}${num(r.repasos, r.repasos === 1 ? 'repaso de hoy hecho' : 'repasos de hoy hechos')}</div>
+    ${r.antiguas ? `<p class="pcap">Anteriores a esta versión, sin fecha: ${r.antiguas} ${r.antiguas === 1 ? 'lección' : 'lecciones'} (no se suman a la semana).</p>` : ''}
+    <div class="card"><h3>Las 5 preguntas que más has fallado</h3>${topHtml}</div>
+    <div class="card"><h3>⭐ Palabras difíciles</h3><p><b>${nDif}</b> ${nDif === 1 ? 'palabra marcada' : 'palabras marcadas'}.</p>${nDif ? `<button class="btn ghost" onclick="go('#/dificiles')">Ver palabras difíciles</button>` : ''}</div>
+    ${sug ? `<div class="card">${sug}</div>` : ''}`;
 }
 
 // ---------- instalar la app: instrucciones por sistema y botón «Instalar ahora» si el navegador lo permite ----------
@@ -1227,7 +1474,7 @@ function viewHome(){
   }).join('');
   const bl = badges().map(b => `<span class="badge ${b.on ? 'on' : ''}">${b.on ? '🏅' : '🔒'} ${esc(b.name)}</span>`).join('');
   const N = S.nivel;
-  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button>`
+  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button>`
     + (N ? ` <span class="pcap" style="cursor:pointer" onclick="go('#/sugerencia')">Último resultado: ${N.level}, unidad ${N.num} (ver)</span>` : '');
   const nDif = difOrdenadas().length;
   const difBtn = nDif ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/dificiles')">⭐ Palabras difíciles (${nDif})</button></div>` : '';
@@ -1286,7 +1533,7 @@ function viewMapa(code){
     const u = it.u, ok = !!S.passed[u.id], esSig = k === sig, lado = k % 2 === 0 ? 'der' : 'izq';
     const estilo = `left:${xs[k]}%;top:${ys[k]}px`;
     const tx = lado === 'der' ? `left:calc(${xs[k]}% + ${esSig ? 52 : 44}px)` : `right:calc(${100 - xs[k]}% + ${esSig ? 52 : 44}px)`;
-    const t = `<div class="mtxt ${lado === 'izq' ? 'izq' : ''} ${ok || esSig ? '' : 'bq'}" style="top:${ys[k]}px;${tx}">${esSig ? '<b>Siguiente</b>' : ''}${esc(u.title)}</div>`;
+    const t = `<div class="mtxt ${lado === 'izq' ? 'izq' : ''} ${ok || esSig ? '' : 'bq'}" style="top:${ys[k]}px;${tx}">${esSig ? '<b>Siguiente</b>' : ''}${esc(u.title)}${esSig && parte1Completa(u.id) ? '<span class="pcap" style="display:block"><span class="mbarra"><i></i></span>En curso</span>' : ''}</div>`;
     if (ok) return `<button class="mnodo ok" style="${estilo}" onclick="go('#/unit/${u.id}')" aria-label="Unidad ${u.num}: ${esc(u.title)}, aprobada"><small>✔</small>${u.num}</button>${t}`;
     if (esSig) return `<button class="mnodo sig" style="${estilo}" onclick="go('#/unit/${u.id}')" aria-label="Unidad ${u.num}: ${esc(u.title)}, siguiente">${u.num}</button>${t}`;
     return `<button class="mnodo bloq" style="${estilo}" onclick="mapaBloqueada()" aria-disabled="true" aria-label="Unidad ${u.num}: ${esc(u.title)}, bloqueada">🔒</button>${t}`;
@@ -1299,18 +1546,40 @@ function viewMapa(code){
     <div class="mmsg" id="mmsg" role="status" aria-live="polite">&nbsp;</div>
     <div class="mapa" style="height:${ALTO}px"><svg viewBox="0 0 100 ${ALTO}" preserveAspectRatio="none" aria-hidden="true"><path d="${tramos}"/><path class="hecho" d="${hecho}"/></svg>${nodos}</div>`;
 }
+// ---------- partes de la unidad (solo presentación: no cambia el progreso) ----------
+function parte1Completa(uid){ for (let n = 1; n <= 4; n++) if (!S.done[uid + '-' + n]) return false; return true; }
+function parte2Abierta(uid){          // abierta al completar 1 a 4; si ya hay algo hecho en 5-7 o el examen, no se cierra
+  if (parte1Completa(uid) || S.passed[uid]) return true;
+  for (let n = 5; n <= 7; n++) if (S.done[uid + '-' + n]) return true;
+  return false;
+}
+function parteProgreso(uid){
+  let d1 = 0, d2 = 0;
+  for (let n = 1; n <= 4; n++) if (S.done[uid + '-' + n]) d1++;
+  for (let n = 5; n <= 7; n++) if (S.done[uid + '-' + n]) d2++;
+  if (S.passed[uid]) d2++;
+  return {d1, d2};
+}
 function viewUnit(uid){
   const u = U(uid);
   const idx = UNITS.indexOf(u);
-  const rows = u.lessons.filter(l => l.n <= 7).map(l => {
-    const key = uid + '-' + l.n;
-    const ok = !!S.done[key];
-    return `<div class="row" onclick="go('#/lesson/${uid}/${l.n}')"><div><b>Lección ${l.n}</b>: ${esc(l.title)}</div>
-      <span class="tag ${ok ? 'ok' : ''}">${ok ? '✅ hecha' : 'abrir'}</span></div>`;
-  }).join('');
+  const p2 = parte2Abierta(uid);
+  const fila = (l, cerrada) => {
+    const ok = !!S.done[uid + '-' + l.n];
+    return `<div class="row ${cerrada ? 'locked' : ''}" ${cerrada ? '' : `onclick="go('#/lesson/${uid}/${l.n}')"`}><div><b>Lección ${l.n}</b>: ${esc(l.title)}</div>
+      <span class="tag ${ok ? 'ok' : ''}">${ok ? '✅ hecha' : cerrada ? '🔒' : 'abrir'}</span></div>`;
+  };
   const exOk = !!S.passed[uid];
-  const exRow = `<div class="row" onclick="go('#/exam/${uid}')"><div><b>Examen de la unidad</b> (7 de 10 para pasar)</div>
-      <span class="tag ${exOk ? 'ok' : ''}">${exOk ? '✅ aprobado' : 'hacer examen'}</span></div>`;
+  const exRow = `<div class="row ${p2 ? '' : 'locked'}" ${p2 ? `onclick="go('#/exam/${uid}')"` : ''}><div><b>Examen de la unidad</b> (7 de 10 para pasar)</div>
+      <span class="tag ${exOk ? 'ok' : ''}">${exOk ? '✅ aprobado' : p2 ? 'hacer examen' : '🔒'}</span></div>`;
+  const pt = parteProgreso(uid);
+  const cab = (tit, d, t, hecha, extra) => `<div class="parte-cab"><h3>${tit}</h3><span class="tag ${hecha ? 'ok' : ''}">${hecha ? 'Parte completa ✔' : d + ' de ' + t + ' lecciones' + (extra || '')}</span></div>
+      <div class="bar mini"><div style="width:${Math.round(100 * d / t)}%"></div></div>`;
+  const rows = `<div class="card parte">${cab('Parte 1 · lecciones 1 a 4', pt.d1, 4, pt.d1 === 4)}
+      ${u.lessons.filter(l => l.n <= 4).map(l => fila(l, false)).join('')}</div>
+    <div class="card parte ${p2 ? '' : 'cerrada'}">${cab('Parte 2 · lecciones 5 a 8 y examen', pt.d2, 4, pt.d2 === 4, ' (con el examen)')}
+      ${p2 ? '' : '<p class="pcap">🔒 Completa las lecciones 1 a 4 para desbloquear esta parte.</p>'}
+      ${u.lessons.filter(l => l.n >= 5 && l.n <= 7).map(l => fila(l, !p2)).join('')}${exRow}</div>`;
   const next = UNITS[idx + 1];
   const prog = unitProgress(uid);
   return `<div class="crumb" onclick="go('#/level/${u.level}')">← ${u.level}</div>
@@ -1318,8 +1587,7 @@ function viewUnit(uid){
     <div class="bar big" role="progressbar" aria-valuenow="${Math.floor(100 * prog.d / prog.t)}" aria-valuemin="0" aria-valuemax="100"><div style="width:${100 * prog.d / prog.t}%">${prog.d / prog.t >= 0.15 ? Math.floor(100 * prog.d / prog.t) + '%' : ''}</div></div>
     <div class="pcap">${prog.d} de ${prog.t} lecciones${prog.d / prog.t < 0.15 ? '<span class="pct-fuera"> · ' + Math.floor(100 * prog.d / prog.t) + '%</span>' : ''}</div>
     <p style="color:var(--muted)">${esc(u.meta)}</p>
-    ${rows}${exRow}
-    ${next ? '' : ''}`;
+    ${rows}`;
 }
 function viewLesson(uid, n){
   const u = U(uid), l = u.lessons.find(x => x.n === n);
@@ -1340,7 +1608,7 @@ function viewLesson(uid, n){
     else if (/^Vocabulario/.test(s.key)) html += vocabHtml(uid, n, s.items, cv);
     else html += s.items.map(i => `<p>${md(i)}</p>`).join('');
     html += '</div>';
-    if (/^Lectura/.test(s.key) && !repPuesto) { html += repBlock(uid, n); repPuesto = true; }
+    if (/^Lectura/.test(s.key) && !repPuesto) { html += repBlock(uid, n) + escBlock(uid, n); repPuesto = true; }
     if (/^Lectura/.test(s.key)) html += dialogBlock(uid, n);
   }
   html += '</div>';
@@ -1365,7 +1633,7 @@ function viewLesson(uid, n){
   html += `<div class="center">${nav.join('')}</div>`;
   return html;
 }
-function markDone(key){ S.done[key] = true; touch(); save(); render(); }
+function markDone(key){ fechaLeccion(key); S.done[key] = true; touch(); save(); render(); }
 
 // ---------- animación de examen aprobado ----------
 const CONFETI_COLORES = ['#7c5cff', '#2fb8ff', '#1fbf75', '#ff5c7a', '#ffc94d'];   // colores de la app (cabecera, acierto, error) + dorado
@@ -1400,7 +1668,7 @@ function viewExam(){
   const u = U(EX.uid);
   if (EX.i >= EX.items.length) {
     const pass = EX.score >= 7;
-    if (pass) { S.passed[u.id] = true; save(); }
+    if (pass) { if (!S.passed[u.id]) fechaExamen(u.id); S.passed[u.id] = true; save(); }
     if (pass && !EX.celebrado) { EX.celebrado = true; setTimeout(celebrar, 0); }   // solo si aprueba; una vez por examen
     const idx = UNITS.indexOf(u), next = UNITS[idx + 1];
     return `<div class="card center">
@@ -1518,6 +1786,8 @@ function render(){
   const app = document.getElementById('app');
   let html;
   if (h[0] === 'level') html = viewLevel(h[1]);
+  else if (h[0] === 'semana') html = '<div class="leccion">' + viewSemana() + '</div>';
+  else if (h[0] === 'glosario') html = '<div class="leccion">' + (h[1] ? viewGlosario(h[1]) : viewGlosarioNiveles()) + '</div>';
   else if (h[0] === 'mapa') html = h[1] ? viewMapa(h[1]) : viewMapaNiveles();
   else if (h[0] === 'unit') html = viewUnit(h[1]);
   else if (h[0] === 'lesson') html = '<div class="leccion">' + viewLesson(h[1], +h[2]) + '</div>';
