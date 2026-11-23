@@ -85,6 +85,17 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .semnum b{display:block;font-size:28px;color:var(--a)}
 .semnum span{font-size:13px;color:var(--muted)}
 .semsug{font-size:17px;margin:0 0 10px}
+.logro{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:10px;border-radius:14px;background:var(--soft2);color:var(--muted);box-shadow:0 1px 6px var(--shadow)}
+.logro .lg-ico{flex:none;font-size:32px;line-height:1;filter:grayscale(1);opacity:.55}
+.logro .lg-txt{min-width:0;overflow-wrap:anywhere}
+.logro .lg-txt b{display:block;color:var(--muted)}
+.logro.on{background:var(--gold);color:var(--ink)}
+.logro.on .lg-ico{filter:none;opacity:1}
+.logro.on .lg-txt b{color:var(--ink)}
+.logro-aviso{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:50;width:calc(100% - 32px);max-width:420px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card);color:var(--ink);border:2px solid var(--a);box-shadow:0 6px 24px var(--shadow);pointer-events:none;animation:laentra .3s ease-out}
+.logro-aviso .la-ico{font-size:30px;line-height:1}
+@keyframes laentra{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){.logro-aviso{animation:none}}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -217,7 +228,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '30';   // igual que la caché mi-ingles-v30 en sw.js
+const APP_VERSION = '31';   // igual que la caché mi-ingles-v31 en sw.js
 const Q = {};
 let EX = null;
 
@@ -228,7 +239,7 @@ function load(){
   try { return Object.assign(base, JSON.parse(localStorage.getItem(KEY) || '{}')); }
   catch(e){ return base; }
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} try{ revisarLogros(); }catch(e){} }
 // ---------- tema claro / oscuro ----------
 function applyTheme(){
   const t = S.theme || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -623,7 +634,7 @@ function answer(id, val){
 // ---------- barra superior ----------
 function stats(){
   const passed = UNITS.filter(u => S.passed[u.id]).length;
-  const earned = badges().filter(b => b.on).length;
+  const earned = badges().filter(b => b.on).length + LOGROS.filter(l => logroConseguido(l)).length;
   document.getElementById('stats').innerHTML =
     `<span>🔥 Racha: ${S.streak.count} día(s)</span><span>✅ ${passed}/${UNITS.length} unidades</span><span>🏅 ${earned} logros</span>`;
 }
@@ -638,6 +649,96 @@ function badges(){
   ];
   DATA.levels.forEach(l => list.push({name:'Nivel ' + l.code + ' completo', on: levelDone(l.code) === levelTotal(l.code)}));
   return list;
+}
+
+// ---------- logros: los de siempre (badges(), se calculan) y los nuevos (S.logros guarda cuándo se consiguió cada uno) ----------
+// S.logros va dentro del progreso (clave mi-ingles-v1), así que viaja a la nube y a la copia de seguridad con él.
+function nHechas(){ return Object.keys(S.done).filter(k => S.done[k]).length; }
+function maxPuntos(o){ let m = -1; Object.keys(o || {}).forEach(k => { if (typeof o[k] === 'number' && o[k] > m) m = o[k]; }); return m; }
+function mejorSerieRepasos(){          // la mayor cantidad de días seguidos con repaso de hoy hecho
+  const f = (S.fechas && Array.isArray(S.fechas.rep)) ? S.fechas.rep.filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).slice().sort() : [];
+  const dia = d => { const [y, m, dd] = d.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, dd) / 864e5); };
+  let mejor = 0, ya = 0, ant = null;
+  f.forEach(d => {
+    const n = dia(d);
+    if (ant === n) return;
+    ya = (ant !== null && n - ant === 1) ? ya + 1 : 1;
+    if (ya > mejor) mejor = ya;
+    ant = n;
+  });
+  return mejor;
+}
+function rachaActualSemana(){ const d = diasSemana(), st = S.streak || {}; return (st.last === d[0] || st.last === d[1]) ? (st.count || 0) : 0; }
+function mejorNivelCompleto(){ let m = 0, ok = false; DATA.levels.forEach(l => { const d = levelDone(l.code); if (d > m) m = d; if (d === levelTotal(l.code)) ok = true; }); return {m, ok}; }
+const LOGROS = [
+  {id: 'primer-paso', icono: '🌱', nombre: 'Primer paso', frase: 'Empezar es lo más difícil, y ya lo has hecho.',
+    test: () => { const n = nHechas(); return {ok: n >= 1, txt: `Completa tu primera lección: ${Math.min(n, 1)} de 1`}; }},
+  {id: 'primera-conversacion', icono: '🗣️', nombre: 'Primera conversación', frase: 'Ya has repetido una lectura en voz alta.',
+    test: () => { const m = maxPuntos(S.speak); return {ok: m >= READY_SCORE, txt: `Pasa «Escucha y repite» en una lección (${READY_SCORE} % o más)` + (m >= 0 ? `: tu mejor, ${m} %` : '')}; }},
+  {id: 'buen-oido', icono: '🎧', nombre: 'Buen oído', frase: 'Escribes lo que oyes: ¡qué buen oído!',
+    test: () => { const m = maxPuntos(S.escucha); return {ok: m >= ESC_OK, txt: `Pasa «Escucha y escribe» con ${ESC_OK} % o más` + (m >= 0 ? `: tu mejor, ${m} %` : '')}; }},
+  {id: 'constancia', icono: '🔁', nombre: 'Constancia', frase: 'Tres días seguidos de repaso: así se aprende.',
+    test: () => { const n = mejorSerieRepasos(); return {ok: n >= 3, txt: `Haz el repaso de hoy tres días seguidos: ${Math.min(n, 3)} de 3`}; }},
+  {id: 'semana-de-fuego', icono: '🔥', nombre: 'Una semana de fuego', frase: 'Siete días seguidos estudiando. ¡Imparable!',
+    test: () => { const n = rachaActualSemana(); return {ok: n >= 7, txt: `Estudia 7 días seguidos: ${Math.min(n, 7)} de 7`}; }},
+  {id: 'primera-unidad', icono: '🏅', nombre: 'Primera unidad', frase: 'Has aprobado tu primera unidad.',
+    test: () => { const n = UNITS.filter(u => S.passed[u.id]).length; return {ok: n >= 1, txt: `Aprueba tu primera unidad: ${Math.min(n, 1)} de 1`}; }},
+  {id: 'ni-un-fallo', icono: '💯', nombre: 'Ni un fallo', frase: '10 de 10 en un examen. ¡Perfecto!',
+    test: () => ({ok: false, txt: 'Aprueba un examen con 10 de 10'})},
+  {id: 'sin-rumbo-fijo', icono: '🧭', nombre: 'Sin rumbo fijo', frase: 'Hiciste el test: ahora ya tienes rumbo.',
+    test: () => ({ok: !!S.nivel, txt: 'Haz el test «¿Por dónde empiezo?» completo'})},
+  {id: 'lector', icono: '📖', nombre: 'Lector', frase: '50 lecciones completadas. ¡Qué constancia!',
+    test: () => { const n = nHechas(); return {ok: n >= 50, txt: `Completa 50 lecciones: ${Math.min(n, 50)} de 50`}; }},
+  {id: 'nivel-superado', icono: '🏆', nombre: 'Nivel superado', frase: 'Un nivel entero aprobado. ¡Sube al siguiente!',
+    test: () => { const r = mejorNivelCompleto(); return {ok: r.ok, txt: `Aprueba todas las unidades de un nivel: tu mejor nivel, ${r.m} de 10`}; }},
+];
+function logroConseguido(l){ return !!(S.logros && S.logros[l.id]) || l.test().ok; }
+let LOGRO_COLA = [], LOGRO_MOSTRANDO = false, LOGRO_INIT = false;
+function persistirS(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function logrosInicio(){        // al abrir con una cuenta que aún no tiene S.logros: se apuntan en silencio los que ya estaban conseguidos
+  if (S.logros && typeof S.logros === 'object' && !Array.isArray(S.logros)) return;
+  S.logros = {};
+  LOGROS.forEach(l => { try { if (l.test().ok) S.logros[l.id] = fechaHoy(); } catch(e){} });
+  persistirS();
+}
+function revisarLogros(){
+  if (!S.logros || typeof S.logros !== 'object') return;        // sin inicializar: no se avisa de nada
+  let cambio = false;
+  LOGROS.forEach(l => { if (!S.logros[l.id] && l.test().ok) { S.logros[l.id] = fechaHoy(); cambio = true; avisarLogro(l); } });
+  if (cambio) persistirS();
+}
+function otorgarLogro(id){      // para logros que no se pueden deducir del progreso (p. ej. 10 de 10 en un examen)
+  try {
+    const l = LOGROS.find(x => x.id === id);
+    if (!l || !S.logros || S.logros[id]) return;
+    S.logros[id] = fechaHoy(); persistirS(); avisarLogro(l);
+  } catch(e){}
+}
+function avisarLogro(l){ LOGRO_COLA.push(l); if (!LOGRO_MOSTRANDO) siguienteAviso(); }
+function siguienteAviso(){
+  const l = LOGRO_COLA.shift();
+  if (!l) { LOGRO_MOSTRANDO = false; return; }
+  LOGRO_MOSTRANDO = true;
+  try {
+    const viejo = document.getElementById('logro-aviso'); if (viejo) viejo.remove();
+    const d = document.createElement('div');
+    d.id = 'logro-aviso'; d.className = 'logro-aviso'; d.setAttribute('role', 'status'); d.setAttribute('aria-live', 'polite');
+    d.innerHTML = `<div class="la-ico">${l.icono}</div><div><b>¡Logro conseguido! ${esc(l.nombre)}</b><div>${esc(l.frase)}</div></div>`;
+    document.body.appendChild(d);
+    setTimeout(() => { try { d.remove(); } catch(e){} siguienteAviso(); }, 4500);
+  } catch(e){ LOGRO_MOSTRANDO = false; }
+}
+function viewLogros(){
+  const nuevos = LOGROS.map(l => ({l, ok: logroConseguido(l), txt: l.test().txt}));
+  const viejos = badges().map(b => ({nombre: b.name, ok: b.on}));
+  const total = nuevos.length + viejos.length, ok = nuevos.filter(x => x.ok).length + viejos.filter(x => x.ok).length;
+  const tarjeta = (ico, nombre, linea, on) => `<div class="logro ${on ? 'on' : ''}"><div class="lg-ico">${ico}</div>
+    <div class="lg-txt"><b>${esc(nombre)}</b><div>${esc(linea)}</div></div></div>`;
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🏅 Logros</h2>
+    <p class="pcap">${ok} de ${total} logros conseguidos</p>
+    ${nuevos.map(x => tarjeta(x.l.icono, x.l.nombre, x.ok ? x.l.frase : x.txt, x.ok)).join('')}
+    <h3>Los de siempre</h3>
+    ${viejos.map(x => tarjeta('🏅', x.nombre, x.ok ? 'Conseguido' : 'Todavía no', x.ok)).join('')}`;
 }
 
 // ---------- vistas ----------
@@ -1484,7 +1585,7 @@ function viewHome(){
     ? `<div style="margin-bottom:10px"><button class="btn ghost" disabled>Repaso hecho hoy ✔</button> <span class="pcap">${repasoGuardado().aciertos} de ${repasoGuardado().total}</span></div>`
     : `<div style="margin-bottom:10px"><button class="btn" onclick="go('#/repaso')">🔁 Repaso de hoy</button></div>`;
   return `${continueButton()}<div style="margin-bottom:10px">${estBtn}</div>${repBtn}${difBtn}${errBtn}<h2>Elige tu nivel</h2><div class="grid">${cards}</div>
-    <div class="card"><h3>Logros</h3>${bl}</div>
+    <div class="card"><h3>Logros</h3>${bl}<div style="margin-top:8px"><button class="btn ghost" onclick="go('#/logros')">🏅 Ver todos los logros</button></div></div>
     <div class="center"><button class="btn ghost" onclick="go('#/copia')">💾 Copia de seguridad</button>
       <button class="btn ghost" onclick="salir()">🚪 Salir</button>
       ${instalada() ? '' : `<button class="btn ghost chico" onclick="go('#/instalar')">📲 Instalar la app</button>`}</div>
@@ -1669,6 +1770,7 @@ function viewExam(){
   if (EX.i >= EX.items.length) {
     const pass = EX.score >= 7;
     if (pass) { if (!S.passed[u.id]) fechaExamen(u.id); S.passed[u.id] = true; save(); }
+    if (pass && !EX.est && EX.score === EX.items.length) otorgarLogro('ni-un-fallo');
     if (pass && !EX.celebrado) { EX.celebrado = true; setTimeout(celebrar, 0); }   // solo si aprueba; una vez por examen
     const idx = UNITS.indexOf(u), next = UNITS[idx + 1];
     return `<div class="card center">
@@ -1782,10 +1884,12 @@ function viewSugerencia(){
 function render(){
   if (!HAY_SESION) { pintarEntrada(); return; }          // sin sesión no se muestra nada más que la entrada
   document.body.classList.remove('sin-sesion');
+  logrosInicio();
   const h = (location.hash || '#/').slice(2).split('/');
   const app = document.getElementById('app');
   let html;
   if (h[0] === 'level') html = viewLevel(h[1]);
+  else if (h[0] === 'logros') html = '<div class="leccion">' + viewLogros() + '</div>';
   else if (h[0] === 'semana') html = '<div class="leccion">' + viewSemana() + '</div>';
   else if (h[0] === 'glosario') html = '<div class="leccion">' + (h[1] ? viewGlosario(h[1]) : viewGlosarioNiveles()) + '</div>';
   else if (h[0] === 'mapa') html = h[1] ? viewMapa(h[1]) : viewMapaNiveles();
