@@ -1,4 +1,4 @@
-const CACHE = 'mi-ingles-v27';
+const CACHE = 'mi-ingles-v28';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -14,6 +14,7 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return;   // la nube (Supabase) y las librerías: siempre en vivo, nunca desde la caché
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const copy = res.clone();
