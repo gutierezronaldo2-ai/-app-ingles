@@ -125,6 +125,14 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .codconf{font-size:14px}
 .codnuevo{text-align:center}
 .codgrande{font-family:ui-monospace,Consolas,monospace;font-size:26px;font-weight:700;letter-spacing:1px;margin:6px 0 10px;overflow-wrap:anywhere}
+.cuenta{background:var(--card);color:var(--ink);border-radius:14px;box-shadow:0 1px 6px var(--shadow);padding:12px 14px;margin-bottom:10px}
+.cuenta-fila{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cuenta-txt{min-width:0;flex:1}
+.cuenta-mail{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cuenta-fechas{margin:2px 0 0;font-size:13px}
+.cuenta-fila .btn,.cuenta-fila .tag{flex:none}
+.cuenta-conf{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.cuenta-conf p{margin:0 0 8px;overflow-wrap:anywhere}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -271,7 +279,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '33';   // igual que la caché mi-ingles-v33 en sw.js
+const APP_VERSION = '34';   // igual que la caché mi-ingles-v34 en sw.js
 const Q = {};
 let EX = null;
 
@@ -1292,9 +1300,59 @@ async function codBorrar(i){
 }
 function viewCodigos(){
   COD = {lista: null, error: '', msg: '', ok: false, nuevo: null, conf: null, ocupado: false};
-  setTimeout(codCargar, 0);
+  CTA = {lista: null, error: '', msg: '', ok: false, conf: null, ocupado: false};
+  setTimeout(codCargar, 0); setTimeout(cuentasCargar, 0);
   return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🎟️ Códigos de invitación</h2>
-    <p class="pcap">Cada código sirve para crear una cuenta, una sola vez.</p><div id="cod-vista">${codCuerpo()}</div>`;
+    <p class="pcap">Cada código sirve para crear una cuenta, una sola vez.</p><div id="cod-vista">${codCuerpo()}</div>
+    <h2 style="margin-top:22px">Personas registradas</h2><div id="cuentas-vista">${cuentasCuerpo()}</div>`;
+}
+
+// ---------- personas registradas (listar_cuentas y borrar_cuenta: funciones del servidor, protegidas por el correo del administrador) ----------
+let CTA = {lista: null, error: '', msg: '', ok: false, conf: null, ocupado: false};
+function cuentaError(e){
+  const c = String((e && (e.code || '')) || '').toLowerCase(), m = String((e && e.message) || '').toLowerCase(), st = e && e.status;
+  if (c === '42501' || st === 401 || st === 403 || /permission|not allowed|not authori|unauthori|forbidden|permiso|no autorizad|denied|admin/.test(m)) return 'No tienes permiso';
+  return 'No se pudo completar. Inténtalo de nuevo';
+}
+async function cuentasCargar(){
+  CTA.error = '';
+  try {
+    if (!SB) { CTA.error = 'No se pudo completar. Inténtalo de nuevo'; CTA.lista = null; cuentasPintar(); return; }
+    const r = await SB.rpc('listar_cuentas');
+    if (r.error) { CTA.error = cuentaError(r.error); CTA.lista = null; }
+    else CTA.lista = (Array.isArray(r.data) ? r.data : []).slice().sort((a, b) => String(b.creada || '').localeCompare(String(a.creada || '')));   // la más reciente primero
+  } catch(e){ CTA.error = cuentaError(e); CTA.lista = null; }
+  cuentasPintar();
+}
+function cuentasPintar(){ const v = document.getElementById('cuentas-vista'); if (v) v.innerHTML = cuentasCuerpo(); }
+function esMiCuenta(c){ return !!(USER && (c.id === USER.id || (c.correo && USER.email && String(c.correo).toLowerCase() === String(USER.email).toLowerCase()))); }
+function cuentasCuerpo(){
+  if (CTA.error) return `<div class="card"><p class="fb bad" role="status">${esc(CTA.error)}</p><button class="btn ghost" onclick="cuentasCargar()">Reintentar</button></div>`;
+  if (CTA.lista === null) return '<p class="pcap">Cargando…</p>';
+  const msg = CTA.msg ? `<p class="fb ${CTA.ok ? 'ok' : 'bad'}" role="status">${esc(CTA.msg)}</p>` : '';
+  const filas = CTA.lista.map((c, i) => {
+    const yo = esMiCuenta(c);
+    const acc = yo ? '<span class="tag">Tú</span>' : `<button class="btn ghost chico" onclick="cuentaPedirBorrar(${i})">🗑️ Eliminar</button>`;
+    const conf = (!yo && CTA.conf === i)
+      ? `<div class="cuenta-conf"><p>Se borrará la cuenta de ${esc(c.correo)} y todo su progreso. Esto no se puede deshacer.</p>
+          <button class="btn peligro chico" ${CTA.ocupado ? 'disabled' : ''} onclick="cuentaBorrar(${i})">Sí, eliminar</button> <button class="btn ghost chico" onclick="cuentaNoBorrar()">Cancelar</button></div>` : '';
+    return `<div class="cuenta"><div class="cuenta-fila"><div class="cuenta-txt"><b class="cuenta-mail" title="${esc(c.correo)}">${esc(c.correo)}</b>
+      <div class="pcap cuenta-fechas">Alta ${c.creada ? codFecha(c.creada) : '—'} · Último acceso ${c.ultimo_acceso ? codFecha(c.ultimo_acceso) : 'nunca'}</div></div>${acc}</div>${conf}</div>`;
+  }).join('');
+  return `${msg}${filas || '<p class="pcap">No hay cuentas.</p>'}`;
+}
+function cuentaPedirBorrar(i){ const c = CTA.lista && CTA.lista[i]; if (!c || esMiCuenta(c)) return; CTA.conf = i; CTA.msg = ''; cuentasPintar(); }
+function cuentaNoBorrar(){ CTA.conf = null; cuentasPintar(); }
+async function cuentaBorrar(i){
+  const c = CTA.lista && CTA.lista[i];
+  if (!c || esMiCuenta(c) || CTA.ocupado || !SB) return;                    // la propia cuenta nunca se borra desde aquí
+  CTA.ocupado = true; cuentasPintar();
+  try {
+    const r = await SB.rpc('borrar_cuenta', {cuenta: c.id});
+    if (r.error) { CTA.ok = false; CTA.msg = cuentaError(r.error); }
+    else { CTA.lista = CTA.lista.filter(x => x !== c); CTA.ok = true; CTA.msg = 'Cuenta eliminada'; }
+  } catch(e){ CTA.ok = false; CTA.msg = cuentaError(e); }
+  CTA.ocupado = false; CTA.conf = null; cuentasPintar();
 }
 
 // ---------- emparejar palabras: mini-juego con el vocabulario del glosario (no toca progreso, errores ni logros) ----------

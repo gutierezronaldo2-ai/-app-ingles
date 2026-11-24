@@ -1,4 +1,4 @@
-const CACHE = 'mi-ingles-v33';
+const CACHE = 'mi-ingles-v34';
 const AUDIO = 'mi-ingles-audio';   // los audios descargados van aparte: la actualización de la app no los borra
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
