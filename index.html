@@ -133,6 +133,28 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .cuenta-fila .btn,.cuenta-fila .tag{flex:none}
 .cuenta-conf{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .cuenta-conf p{margin:0 0 8px;overflow-wrap:anywhere}
+.cf-pista{margin:0 0 10px;color:var(--muted)}
+.cf-arriba,.cf-abajo{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.cf-arriba{min-height:64px;padding:10px;border:2px dashed var(--line);border-radius:14px;margin-bottom:12px;background:var(--soft2)}
+.cf-arriba.ok{border:2px solid var(--ok);background:var(--okbg);color:var(--okink)}
+.cf-arriba.mal{border:2px solid var(--bad);background:var(--badbg);color:var(--badink)}
+.cf-abajo{min-height:48px;margin-bottom:12px}
+.cf-w{padding:8px 12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:17px;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.cf-w:disabled{cursor:default;opacity:.85}
+.cf-vacio{color:var(--muted);font-size:14px;align-self:center}
+.cf-correcta{padding:10px 12px;border-radius:12px;background:var(--okbg);color:var(--okink);font-weight:600;margin-bottom:10px;overflow-wrap:anywhere}
+.cf-btns{display:flex;flex-wrap:wrap;gap:6px}
+.cf-btns .btn{margin:0}
+.ah-dib{display:block;width:140px;max-width:60%;height:auto;margin:6px auto;color:var(--ink)}
+.ah-palabra{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0}
+.ah-l{display:inline-flex;align-items:flex-end;justify-content:center;width:28px;height:38px;border-bottom:3px solid var(--ink);font-size:24px;font-weight:700;text-transform:uppercase;line-height:1.2}
+.ah-l.falta{color:var(--bad);border-color:var(--bad)}
+.ah-pista{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin:6px 0 10px;text-align:center}
+.ah-teclado{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:6px 0 10px}
+.ah-t{width:38px;height:42px;padding:0;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:17px;font-weight:600;cursor:pointer}
+.ah-t:disabled{cursor:default}
+.ah-t.ok{background:var(--okbg);border-color:var(--ok);color:var(--okink)}
+.ah-t.mal{background:var(--badbg);border-color:var(--bad);color:var(--badink)}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -279,7 +301,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '34';   // igual que la caché mi-ingles-v34 en sw.js
+const APP_VERSION = '35';   // igual que la caché mi-ingles-v35 en sw.js
 const Q = {};
 let EX = null;
 
@@ -1199,6 +1221,174 @@ function viewSemana(){
     <div class="card"><h3>Las 5 preguntas que más has fallado</h3>${topHtml}</div>
     <div class="card"><h3>⭐ Palabras difíciles</h3><p><b>${nDif}</b> ${nDif === 1 ? 'palabra marcada' : 'palabras marcadas'}.</p>${nDif ? `<button class="btn ghost" onclick="go('#/dificiles')">Ver palabras difíciles</button>` : ''}</div>
     ${sug ? `<div class="card">${sug}</div>` : ''}`;
+}
+
+// ---------- construir frases: ordenar las palabras de frases de los diálogos y lecturas de la unidad (solo práctica: no guarda nada) ----------
+const CF_N = 5, CF_MIN = 3, CF_MAX = 12;
+let CF = null;
+function cfNorm(t){ return String(t).toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, '').replace(/\s+/g, ' ').trim(); }   // sin mayúsculas, signos ni apóstrofos
+function cfDeUnidad(uid){
+  const u = U(uid), vistos = new Set(), out = [];
+  const add = t => String(t).split(/(?<=[.!?])\s+/).forEach(x => {
+    x = x.trim().replace(/^["“”‘’'\-–—\s]+/, '').replace(/["“”\s]+$/, '');
+    if (!x || x.indexOf('_') >= 0) return;
+    const n = (x.match(/[\p{L}\p{N}']+/gu) || []).length;
+    const k = cfNorm(x);
+    if (n < CF_MIN || n > CF_MAX || vistos.has(k)) return;
+    vistos.add(k); out.push(x);
+  });
+  u.lessons.forEach(l => {
+    if (l.n > 7) return;
+    const lec = lectureText(uid, l.n); if (lec) add(lec);
+    ((DATA.dialogs || {})[uid + '-lec' + l.n] || []).forEach(([who, t]) => add(t));
+  });
+  return out;
+}
+function cfNueva(uid){
+  const frases = shuffle(cfDeUnidad(uid)).slice(0, CF_N).map(f => {
+    const pal = f.split(/\s+/);
+    let orden = pal.map((_, i) => i);
+    for (let k = 0; k < 6; k++) { orden = shuffle(pal.map((_, i) => i)); if (orden.some((v, i) => v !== i)) break; }   // que no salga ya en orden
+    return {f, pal, orden};
+  });
+  CF = {uid, frases, i: 0, ac: 0, puestas: [], res: null, fin: false, oir: true};
+}
+function cfSinColocar(){ const F = CF.frases[CF.i]; return F.orden.filter(i => CF.puestas.indexOf(i) < 0); }
+function cfCaja(){
+  const F = CF.frases[CF.i], r = CF.res, bloq = r !== null;
+  const ficha = (i, f) => `<button type="button" class="cf-w" ${bloq ? 'disabled' : ''} onclick="${f}(${i})">${esc(F.pal[i])}</button>`;
+  const arriba = CF.puestas.length ? CF.puestas.map(i => ficha(i, 'cfQuitar')).join('') : '<span class="cf-vacio">Toca las palabras de abajo para formar la frase</span>';
+  const abajo = cfSinColocar().map(i => ficha(i, 'cfPoner')).join('');
+  return `<div class="pcap">Frase ${CF.i + 1} de ${CF.frases.length}</div>
+    <p class="cf-pista">Escucha la frase y ordena las palabras.</p>
+    <div class="cf-arriba ${r === true ? 'ok' : r === false ? 'mal' : ''}" aria-label="Tu frase">${arriba}</div>
+    <div class="cf-abajo" aria-label="Palabras">${abajo}</div>
+    ${r === true ? '<p class="fb ok" role="status">¡Muy bien!</p>' : ''}
+    ${r === false ? `<p class="fb bad" role="status">Casi. Mira la frase correcta</p><div class="cf-correcta">${esc(F.f)}</div>` : ''}
+    <div class="cf-btns"><button class="btn" ${bloq || !CF.puestas.length ? 'disabled' : ''} onclick="cfComprobar()">Comprobar</button>
+      <button class="btn ghost" onclick="cfOir()">🔊 Escuchar</button>
+      <button class="btn ghost" ${bloq || !CF.puestas.length ? 'disabled' : ''} onclick="cfBorrar()">Borrar</button>
+      <button class="btn" ${bloq ? '' : 'disabled'} onclick="cfSiguiente()">Siguiente</button></div>
+    <div class="fb bad" id="cf-err" role="status"></div>`;
+}
+function cfPintar(){ const c = document.getElementById('cf-caja'); if (c && CF && !CF.fin) c.innerHTML = cfCaja(); }
+function cfPoner(i){ if (!CF || CF.res !== null || CF.puestas.indexOf(i) >= 0) return; CF.puestas.push(i); cfPintar(); }
+function cfQuitar(i){ if (!CF || CF.res !== null) return; const k = CF.puestas.indexOf(i); if (k >= 0) CF.puestas.splice(k, 1); cfPintar(); }
+function cfBorrar(){ if (!CF || CF.res !== null) return; CF.puestas = []; cfPintar(); }
+function cfComprobar(){
+  if (!CF || CF.res !== null || !CF.puestas.length) return;
+  const F = CF.frases[CF.i];
+  const ok = cfNorm(CF.puestas.map(i => F.pal[i]).join(' ')) === cfNorm(F.f);        // sin distinguir mayúsculas ni signos
+  CF.res = ok; if (ok) CF.ac++;
+  cfPintar();
+}
+function cfOir(){
+  const e = document.getElementById('cf-err'); if (e) e.textContent = '';
+  if (!CF || CF.fin) return;
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') { if (e) e.textContent = 'Tu navegador no puede leer en voz alta.'; return; }
+  try { tts(CF.frases[CF.i].f); } catch(err){}                                          // la misma voz y velocidad que el resto de la app
+}
+function cfSiguiente(){
+  if (!CF || CF.res === null) return;
+  CF.i++; CF.puestas = []; CF.res = null;
+  if (CF.i >= CF.frases.length) { CF.fin = true; render(); return; }
+  cfPintar(); cfOir();
+}
+function viewFrases(){
+  const u = U(CF.uid);
+  const cab = `<div class="crumb" onclick="go('#/unit/${u.id}')">← Unidad ${u.num}: ${esc(u.title)}</div><h2>🧱 Construir frases</h2>`;
+  if (!CF.frases.length) return `${cab}<div class="card"><p>Esta unidad todavía no tiene frases para practicar.</p><button class="btn ghost" onclick="go('#/unit/${u.id}')">Volver a la unidad</button></div>`;
+  if (CF.fin) return `${cab}<div class="card center"><div class="big">${CF.ac} de ${CF.frases.length}</div>
+      <h3>Has acabado. Aciertos: ${CF.ac} de ${CF.frases.length}</h3>
+      <button class="btn" onclick="cfNueva('${u.id}');render()">🔁 Empezar de nuevo</button>
+      <button class="btn ghost" onclick="go('#/unit/${u.id}')">Volver a la unidad</button></div>`;
+  if (CF.oir) { CF.oir = false; setTimeout(cfOir, 300); }
+  return `${cab}<div class="card" id="cf-caja">${cfCaja()}</div>`;
+}
+
+// ---------- ahorcado: adivinar palabras del vocabulario de la unidad (solo práctica: no guarda nada) ----------
+const AH_N = 5, AH_MAX = 6, AH_MIN_L = 3, AH_MAX_L = 10;
+let AH = null;
+function ahPalabras(uid){          // palabras sueltas de 3 a 10 letras (solo a-z) del vocabulario de la unidad; sin repetir
+  const mapa = new Map();
+  U(uid).lessons.forEach(l => vocabPalabras(uid, l.n).forEach(x => {
+    const w = (x.w || '').trim();
+    if (!/^[A-Za-z]+$/.test(w) || w.length < AH_MIN_L || w.length > AH_MAX_L) return;
+    const k = w.toLowerCase(), e = mapa.get(k);
+    if (!e) mapa.set(k, {w, k, t: (x.t || '').trim()});
+    else if (!e.t && x.t) e.t = x.t.trim();         // si una aparición trae traducción, se usa
+  }));
+  return [...mapa.values()];
+}
+function ahNueva(uid){
+  AH = {uid, palabras: shuffle(ahPalabras(uid)).slice(0, AH_N), i: 0, ac: 0, letras: [], res: null, fin: false};
+}
+function ahFallos(){ const k = AH.palabras[AH.i].k; return AH.letras.filter(l => k.indexOf(l) < 0).length; }
+function ahCompleta(){ const k = AH.palabras[AH.i].k; return k.split('').every(c => AH.letras.indexOf(c) >= 0); }
+function ahDibujo(f){
+  const partes = ['<circle cx="80" cy="38" r="10"/>', '<line x1="80" y1="48" x2="80" y2="88"/>', '<line x1="80" y1="58" x2="62" y2="76"/>',
+    '<line x1="80" y1="58" x2="98" y2="76"/>', '<line x1="80" y1="88" x2="65" y2="114"/>', '<line x1="80" y1="88" x2="95" y2="114"/>'];
+  return `<svg class="ah-dib" viewBox="0 0 120 140" role="img" aria-label="Ahorcado: ${f} de ${AH_MAX} fallos" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="10" y1="130" x2="110" y2="130"/><line x1="30" y1="130" x2="30" y2="10"/><line x1="30" y1="10" x2="80" y2="10"/><line x1="80" y1="10" x2="80" y2="28"/>
+    <g class="ah-cuerpo">${partes.slice(0, f).join('')}</g></svg>`;
+}
+function ahCaja(){
+  const P = AH.palabras[AH.i], f = ahFallos(), r = AH.res, bloq = r !== null;
+  const letrasPal = P.k.split('').map((c, j) => {
+    const vista = AH.letras.indexOf(c) >= 0;
+    return `<span class="ah-l ${vista ? '' : (r === false ? 'falta' : '')}">${vista || r === false ? esc(P.w[j]) : ''}</span>`;
+  }).join('');
+  const teclas = 'abcdefghijklmnopqrstuvwxyz'.split('').map(c => {
+    const usada = AH.letras.indexOf(c) >= 0, dentro = usada && P.k.indexOf(c) >= 0, fuera = usada && !dentro;
+    return `<button type="button" class="ah-t ${dentro ? 'ok' : ''} ${fuera ? 'mal' : ''}" ${usada || bloq ? 'disabled' : ''} aria-label="Letra ${c.toUpperCase()}${dentro ? ', está' : fuera ? ', no está' : ''}" onclick="ahPulsar('${c}')">${c.toUpperCase()}</button>`;
+  }).join('');
+  return `<div class="pcap">Palabra ${AH.i + 1} de ${AH.palabras.length} · Fallos: ${f} de ${AH_MAX}</div>
+    ${ahDibujo(f)}
+    <div class="ah-palabra" aria-label="Palabra de ${P.k.length} letras">${letrasPal}</div>
+    <div class="ah-pista">${P.t ? `<span>Pista: <b>${esc(P.t)}</b></span>` : ''}<span class="pcap" style="margin:0">${P.k.length} letras</span>
+      <button type="button" class="btn ghost chico" aria-label="Escuchar la palabra" title="Escuchar" onclick="ahOir()">🔊</button></div>
+    <div class="ah-teclado" aria-label="Teclado de letras">${teclas}</div>
+    ${r === true ? '<p class="fb ok" role="status">¡Muy bien!</p>' : ''}
+    ${r === false ? `<p class="fb bad" role="status">Casi. La palabra era: ${esc(P.w)}</p>` : ''}
+    <div class="fb bad" id="ah-err" role="status"></div>
+    <div class="cf-btns"><button class="btn" ${bloq ? '' : 'disabled'} onclick="ahSiguiente()">Siguiente</button></div>`;
+}
+function ahPintar(){ const c = document.getElementById('ah-caja'); if (c && AH && !AH.fin) c.innerHTML = ahCaja(); }
+function ahPulsar(c){
+  if (!AH || AH.fin || AH.res !== null || !/^[a-z]$/.test(c) || AH.letras.indexOf(c) >= 0) return;     // cada letra solo una vez
+  AH.letras.push(c);
+  if (ahFallos() >= AH_MAX) AH.res = false;
+  else if (ahCompleta()) { AH.res = true; AH.ac++; }
+  ahPintar();
+}
+function ahOir(){
+  const e = document.getElementById('ah-err'); if (e) e.textContent = '';
+  if (!AH || AH.fin) return;
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') { if (e) e.textContent = 'Tu navegador no puede leer en voz alta.'; return; }
+  try { tts(AH.palabras[AH.i].w); } catch(err){}                                  // como el altavoz del glosario
+}
+function ahSiguiente(){
+  if (!AH || AH.res === null) return;
+  AH.i++; AH.letras = []; AH.res = null;
+  if (AH.i >= AH.palabras.length) { AH.fin = true; render(); return; }
+  ahPintar();
+}
+document.addEventListener('keydown', ev => {        // el teclado del móvil o del PC también cuenta (solo en esta pantalla)
+  if (!AH || AH.fin || !(location.hash || '').startsWith('#/ahorcado')) return;
+  if (ev.ctrlKey || ev.metaKey || ev.altKey || ev.isComposing) return;
+  const t = ev.target && ev.target.tagName;
+  if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+  if (/^[a-zA-Z]$/.test(ev.key)) { ahPulsar(ev.key.toLowerCase()); ev.preventDefault(); }
+});
+function viewAhorcado(){
+  const u = U(AH.uid);
+  const cab = `<div class="crumb" onclick="go('#/unit/${u.id}')">← Unidad ${u.num}: ${esc(u.title)}</div><h2>🪢 Ahorcado</h2>`;
+  if (!AH.palabras.length) return `${cab}<div class="card"><p>Esta unidad todavía no tiene palabras para jugar.</p><button class="btn ghost" onclick="go('#/unit/${u.id}')">Volver a la unidad</button></div>`;
+  if (AH.fin) return `${cab}<div class="card center"><div class="big">${AH.ac} de ${AH.palabras.length}</div>
+      <h3>Has acertado ${AH.ac} de ${AH.palabras.length}</h3>
+      <button class="btn" onclick="ahNueva('${u.id}');render()">🔁 Empezar de nuevo</button>
+      <button class="btn ghost" onclick="go('#/unit/${u.id}')">Volver a la unidad</button></div>`;
+  return `${cab}<div class="card" id="ah-caja">${ahCaja()}</div>`;
 }
 
 // ---------- panel de códigos de invitación (solo administrador) ----------
@@ -2241,7 +2431,10 @@ function viewUnit(uid){
       ${u.lessons.filter(l => l.n <= 4).map(l => fila(l, false)).join('')}</div>
     <div class="card parte ${p2 ? '' : 'cerrada'}">${cab('Parte 2 · lecciones 5 a 8 y examen', pt.d2, 4, pt.d2 === 4, ' (con el examen)')}
       ${p2 ? '' : '<p class="pcap">🔒 Completa las lecciones 1 a 4 para desbloquear esta parte.</p>'}
-      ${u.lessons.filter(l => l.n >= 5 && l.n <= 7).map(l => fila(l, !p2)).join('')}${exRow}</div>`;
+      ${u.lessons.filter(l => l.n >= 5 && l.n <= 7).map(l => fila(l, !p2)).join('')}${exRow}</div>
+    <div class="card parte"><h3>Ejercicios extra</h3><p class="pcap">Para practicar: no cambian tu progreso.</p>
+      <button class="btn ghost" onclick="cfNueva('${uid}');go('#/frases/${uid}')">🧱 Construir frases</button>
+      <button class="btn ghost" onclick="ahNueva('${uid}');go('#/ahorcado/${uid}')">🪢 Ahorcado</button></div>`;
   const next = UNITS[idx + 1];
   const prog = unitProgress(uid);
   return `<div class="crumb" onclick="go('#/level/${u.level}')">← ${u.level}</div>
@@ -2450,6 +2643,8 @@ function render(){
   const app = document.getElementById('app');
   let html;
   if (h[0] === 'level') html = viewLevel(h[1]);
+  else if (h[0] === 'frases') { if (!U(h[1])) html = viewHome(); else { if (!CF || CF.uid !== h[1]) cfNueva(h[1]); html = '<div class="leccion">' + viewFrases() + '</div>'; } }
+  else if (h[0] === 'ahorcado') { if (!U(h[1])) html = viewHome(); else { if (!AH || AH.uid !== h[1]) ahNueva(h[1]); html = '<div class="leccion">' + viewAhorcado() + '</div>'; } }
   else if (h[0] === 'codigos') html = esAdmin() ? '<div class="leccion">' + viewCodigos() + '</div>' : viewHome();      // solo existe para el administrador
   else if (h[0] === 'emparejar') html = '<div class="leccion">' + viewEmparejar(h[1]) + '</div>';
   else if (h[0] === 'desafio') { if (!h[1]) desCancelar(); html = '<div class="leccion">' + viewDesafio(h[1]) + '</div>'; }
