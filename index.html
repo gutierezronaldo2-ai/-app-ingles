@@ -99,6 +99,32 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .desc-fila{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;margin-bottom:10px;border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 1px 6px var(--shadow)}
 .desc-txt{min-width:0;flex:1}
 .desc-fila .btn{flex:none}
+.destiempo{display:flex;align-items:center;gap:10px;margin:8px 0 12px}
+.destiempo b{flex:none;min-width:3.2em;text-align:right;font-size:18px}
+.destrack{flex:1;min-width:0;height:16px;border-radius:99px;background:var(--soft);overflow:hidden}
+.desfill{height:100%;background:var(--ok);border-radius:99px}
+.desfill.poco{background:var(--bad)}
+.desfila{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;margin-bottom:10px;border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 1px 6px var(--shadow);cursor:pointer}
+.desmejor{flex:none;color:var(--muted);font-size:14px;text-align:right}
+.desrank{list-style:none;margin:0;padding:0;text-align:left}
+.desrank li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;margin-bottom:6px;background:var(--soft2)}
+.desrank li span{color:var(--muted)}
+.desrank li.es{background:var(--gold)}
+.pcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcol{min-width:0;display:flex;flex-direction:column;gap:8px}
+.pcol .pcap{margin:0;text-align:center}
+.pw{min-height:52px;padding:8px 10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;line-height:1.25;text-align:center;cursor:pointer;overflow-wrap:anywhere;hyphens:auto}
+.pw.sel{border-color:var(--a);background:var(--soft)}
+.pw.ok{background:var(--okbg);border-color:var(--ok);color:var(--okink);opacity:1}
+.pw.mal{background:var(--badbg);border-color:var(--bad);color:var(--badink)}
+.pw:disabled{cursor:default}
+.codfila{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 14px;margin-bottom:10px;border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 1px 6px var(--shadow)}
+.codfila.usado{opacity:.75}
+.codtxt{min-width:0;overflow-wrap:anywhere}
+.codmono{font-family:ui-monospace,Consolas,monospace;letter-spacing:.5px}
+.codconf{font-size:14px}
+.codnuevo{text-align:center}
+.codgrande{font-family:ui-monospace,Consolas,monospace;font-size:26px;font-weight:700;letter-spacing:1px;margin:6px 0 10px;overflow-wrap:anywhere}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -164,6 +190,20 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .campo{display:block;margin:0 0 12px;font-weight:600}
 .campo input{display:block;width:100%;margin-top:4px;padding:12px;font-size:18px;border:2px solid var(--line);border-radius:12px;background:var(--soft2);color:var(--ink);font-family:inherit}
 .campo input:focus{outline:none;border-color:var(--a)}
+.card.entrada{background:#1b1f45;color:#e8eaff;border:1px solid #3a3f78;padding:20px 16px}
+.card.entrada h2{margin:0 0 6px;color:#fff}
+.card.entrada p{color:#b9bfe8}
+.pestanas{display:flex;gap:8px;margin:12px 0 14px}
+.pestana{flex:1;padding:10px 8px;border:2px solid #3a3f78;border-radius:12px;background:transparent;color:#e8eaff;font-size:16px;cursor:pointer}
+.pestana.on{border-color:#19c9b4;color:#19e0c9;font-weight:700}
+.card.entrada .campo{color:#e8eaff}
+.card.entrada .campo input{background:#12142b;color:#fff;border-color:#3a3f78}
+.card.entrada .campo input:focus{border-color:#19c9b4}
+.btn.turquesa{background:#19c9b4;color:#06222a;font-weight:700;width:100%;margin:4px 0}
+.btn.turquesa:disabled{opacity:.6}
+.card.entrada .fb{padding:10px 12px;border-radius:10px;margin:12px 0 0}
+.card.entrada .fb.bad{background:#431d2b;color:#ff9db1}
+.card.entrada .fb.ok{background:#14382b;color:#6ff0b4}
 /* palabras difíciles: estrella junto a cada palabra del vocabulario */
 .vw{display:inline-flex;align-items:flex-start;max-width:100%;margin:0 8px 0 0}
 .star{flex:none;background:none;border:0;padding:0 4px 0 0;min-width:30px;min-height:30px;font-size:22px;line-height:1;cursor:pointer;color:var(--muted)}
@@ -231,7 +271,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '32';   // igual que la caché mi-ingles-v32 en sw.js
+const APP_VERSION = '33';   // igual que la caché mi-ingles-v33 en sw.js
 const Q = {};
 let EX = null;
 
@@ -625,6 +665,7 @@ function answer(id, val){
     nb.setAttribute('onclick', 'repasoSiguiente()'); nb.classList.remove('hide');
     return;
   }
+  if (q.kind === 'des') { desResponder(right, fb); return; }   // desafío de 60 segundos: no toca el progreso
   if (q.kind === 'exam') {
     if (EX.est) estRegistrar(right); else if (right) EX.score++;
     fb.className = 'fb ' + (right ? 'ok' : 'bad');
@@ -1152,6 +1193,305 @@ function viewSemana(){
     ${sug ? `<div class="card">${sug}</div>` : ''}`;
 }
 
+// ---------- panel de códigos de invitación (solo administrador) ----------
+// El botón solo se muestra con el correo del administrador; lo que de verdad protege la tabla son las reglas del servidor (RLS), no esto.
+const ADMIN_MAIL = 'gutierezronaldo2@gmail.com';
+const COD_TABLA = 'codigos_invitacion';
+function esAdmin(){ return !!(USER && USER.email && String(USER.email).trim().toLowerCase() === ADMIN_MAIL); }
+let COD = {lista: null, error: '', msg: '', ok: false, nuevo: null, conf: null, ocupado: false};
+function codFecha(f){
+  const d = new Date(f); if (isNaN(d)) return '';
+  const z = n => String(n).padStart(2, '0');
+  return z(d.getDate()) + '/' + z(d.getMonth() + 1) + '/' + d.getFullYear();
+}
+function codAleatorio(){            // FAMILIA-XXXX con 4 letras mayúsculas o cifras, con crypto.getRandomValues (sin sesgo)
+  const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let t = '';
+  while (t.length < 4) {
+    const b = new Uint8Array(8); crypto.getRandomValues(b);
+    for (const x of b) if (x < 252 && t.length < 4) t += A[x % 36];       // 252 = 7 × 36
+  }
+  return 'FAMILIA-' + t;
+}
+async function codCargar(){
+  COD.error = '';
+  try {
+    if (!SB) { COD.error = 'Sin conexión'; COD.lista = null; codPintar(); return; }
+    const r = await SB.from(COD_TABLA).select('codigo,usado,usado_por,creado').order('creado', {ascending: false});
+    if (r.error) { COD.error = esRed(r.error) ? 'Sin conexión' : 'No tienes permiso para ver los códigos'; COD.lista = null; }
+    else {
+      const l = r.data || [];
+      COD.lista = l.filter(x => !x.usado).concat(l.filter(x => x.usado));      // los usados, al final
+    }
+  } catch(e){ COD.error = esRed(e) ? 'Sin conexión' : 'No tienes permiso para ver los códigos'; COD.lista = null; }
+  codPintar();
+}
+function codPintar(){ const v = document.getElementById('cod-vista'); if (v) v.innerHTML = codCuerpo(); }
+function codCuerpo(){
+  if (COD.error) return `<div class="card"><p class="fb bad" role="status">${esc(COD.error)}</p><button class="btn ghost" onclick="codCargar()">Reintentar</button></div>`;
+  if (COD.lista === null) return '<p class="pcap">Cargando…</p>';
+  const nuevo = COD.nuevo ? `<div class="card codnuevo"><p class="pcap" style="margin:0">Código nuevo</p><div class="codgrande">${esc(COD.nuevo)}</div>
+      <button class="btn" onclick="codCopiar('${esc(COD.nuevo)}')">📋 Copiar</button></div>` : '';
+  const msg = COD.msg ? `<p class="fb ${COD.ok ? 'ok' : 'bad'}" role="status">${esc(COD.msg)}</p>` : '';
+  const filas = COD.lista.map((x, i) => {
+    const est = x.usado ? 'Usado por ' + esc(x.usado_por || '—') : 'Libre';
+    let acc = '';
+    if (!x.usado) acc = COD.conf === i
+      ? `<div class="codconf">¿Borrar este código? <button class="btn peligro chico" onclick="codBorrar(${i})">Sí, borrar</button> <button class="btn ghost chico" onclick="codNoBorrar()">No</button></div>`
+      : `<button class="btn ghost chico" aria-label="Borrar ${esc(x.codigo)}" title="Borrar" onclick="codPedirBorrar(${i})">🗑️</button>`;
+    return `<div class="codfila ${x.usado ? 'usado' : ''}"><div class="codtxt"><b class="codmono">${esc(x.codigo)}</b>
+      <div class="pcap" style="margin:0">${est}${x.creado ? ' · ' + codFecha(x.creado) : ''}</div></div>${acc}</div>`;
+  }).join('');
+  return `<button class="btn" ${COD.ocupado ? 'disabled' : ''} onclick="codCrear()">➕ Crear código</button>${nuevo}${msg}
+    <h3>${COD.lista.length} ${COD.lista.length === 1 ? 'código' : 'códigos'}</h3>${filas || '<p class="pcap">Todavía no hay códigos.</p>'}`;
+}
+async function codCrear(){
+  if (COD.ocupado || !SB) return;
+  COD.ocupado = true; COD.msg = ''; COD.nuevo = null; COD.conf = null; codPintar();
+  let hecho = null, fallo = null;
+  for (let k = 0; k < 6 && !hecho; k++) {
+    const c = codAleatorio();
+    try {
+      const r = await SB.from(COD_TABLA).insert({codigo: c});
+      if (!r.error) hecho = c;
+      else if (r.error.code === '23505') continue;                // ya existía: se prueba otro
+      else { fallo = r.error; break; }
+    } catch(e){ fallo = e; break; }
+  }
+  COD.ocupado = false;
+  if (hecho) { COD.nuevo = hecho; COD.ok = true; COD.msg = 'Código guardado.'; }
+  else { COD.ok = false; COD.msg = fallo && esRed(fallo) ? 'Sin conexión' : 'No se pudo crear el código.'; }
+  await codCargar();
+}
+function codCopiar(c){
+  const ok = () => { COD.ok = true; COD.msg = 'Copiado: ' + c; codPintar(); };
+  const no = () => { COD.ok = false; COD.msg = 'No se pudo copiar. Cópialo a mano: ' + c; codPintar(); };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(c).then(ok, () => { try { copiarViejo(c) ? ok() : no(); } catch(e){ no(); } }); return; }
+    copiarViejo(c) ? ok() : no();
+  } catch(e){ no(); }
+}
+function copiarViejo(t){
+  const a = document.createElement('textarea'); a.value = t; a.setAttribute('readonly', ''); a.style.cssText = 'position:fixed;left:-9999px;top:0';
+  document.body.appendChild(a); a.select();
+  let r = false; try { r = document.execCommand('copy'); } catch(e){}
+  a.remove(); return r;
+}
+function codPedirBorrar(i){ COD.conf = i; COD.msg = ''; codPintar(); }
+function codNoBorrar(){ COD.conf = null; codPintar(); }
+async function codBorrar(i){
+  const x = COD.lista && COD.lista[i]; COD.conf = null;
+  if (!x || x.usado || !SB) { codPintar(); return; }                    // los usados no se pueden borrar
+  try {
+    const r = await SB.from(COD_TABLA).delete().eq('codigo', x.codigo).eq('usado', false).select();
+    if (r.error) { COD.ok = false; COD.msg = esRed(r.error) ? 'Sin conexión' : 'No se pudo borrar el código.'; }
+    else if (!r.data || !r.data.length) { COD.ok = false; COD.msg = 'No se pudo borrar el código.'; }
+    else { COD.ok = true; COD.msg = 'Código borrado.'; if (COD.nuevo === x.codigo) COD.nuevo = null; }
+  } catch(e){ COD.ok = false; COD.msg = 'No se pudo borrar el código.'; }
+  await codCargar();
+}
+function viewCodigos(){
+  COD = {lista: null, error: '', msg: '', ok: false, nuevo: null, conf: null, ocupado: false};
+  setTimeout(codCargar, 0);
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🎟️ Códigos de invitación</h2>
+    <p class="pcap">Cada código sirve para crear una cuenta, una sola vez.</p><div id="cod-vista">${codCuerpo()}</div>`;
+}
+
+// ---------- emparejar palabras: mini-juego con el vocabulario del glosario (no toca progreso, errores ni logros) ----------
+// Lo único que puede cambiar son las palabras difíciles (DIF, la misma lista de las lecciones y del glosario): las que se fallan se marcan.
+const PAR_N = 6;
+let PAR = null;
+function parPares(code){
+  const usadas = new Set(), out = [];
+  for (const e of shuffle(glosarioNivel(code))) {
+    const t = (e.t || '').split(' / ')[0].trim();
+    if (!t) continue;
+    const k = normBusq(t);
+    if (usadas.has(k)) continue;                       // dos palabras con la misma traducción harían la partida ambigua
+    usadas.add(k); out.push({w: e.w, t, e});
+    if (out.length >= PAR_N) break;
+  }
+  return out;
+}
+function parNueva(code){
+  const items = parPares(code);
+  const idx = items.map((_, i) => i);
+  PAR = {level: code, items, izq: shuffle(idx), der: shuffle(idx), hechos: new Set(), selL: null, selR: null, bloqueo: false,
+         malas: {}, fallos: 0, marcadas: [], mal: null};
+}
+function parMarcarDificil(e){          // igual que la estrella del glosario: se marca en todas las lecciones del nivel donde aparece
+  let cambio = false;
+  e.occ.forEach(o => { if (difIdx(o.uid, o.n, o.w) < 0) { DIF.push({uid: o.uid, n: o.n, w: o.w, t: (e.t.split(' / ')[0] || '')}); cambio = true; } });
+  if (cambio) guardarDif();
+  return cambio;
+}
+function parTablero(){
+  const P = PAR;
+  const btn = (lado, i) => {
+    const ok = P.hechos.has(i), sel = (lado === 'L' ? P.selL : P.selR) === i, mal = P.mal && (lado === 'L' ? P.mal.l : P.mal.r) === i;
+    const txt = lado === 'L' ? P.items[i].w : P.items[i].t;
+    return `<button type="button" class="pw ${ok ? 'ok' : ''} ${sel ? 'sel' : ''} ${mal ? 'mal' : ''}" ${ok ? 'disabled' : ''} aria-pressed="${sel}" onclick="parTocar('${lado}',${i})">${esc(txt)}</button>`;
+  };
+  return `<div class="pcols"><div class="pcol"><div class="pcap">Inglés</div>${P.izq.map(i => btn('L', i)).join('')}</div>
+    <div class="pcol"><div class="pcap">Español</div>${P.der.map(i => btn('R', i)).join('')}</div></div>`;
+}
+function parPintar(){
+  const t = document.getElementById('par-tablero'); if (t && PAR) t.innerHTML = parTablero();
+  const c = document.getElementById('par-cuenta'); if (c && PAR) c.textContent = PAR.hechos.size + ' de ' + PAR.items.length + ' unidas.';
+}
+function parTocar(lado, i){
+  const P = PAR; if (!P || P.bloqueo || P.hechos.has(i)) return;
+  if (lado === 'L') P.selL = (P.selL === i) ? null : i; else P.selR = (P.selR === i) ? null : i;
+  if (P.selL === null || P.selR === null) { parPintar(); return; }
+  const l = P.selL, r = P.selR;
+  if (l === r) {                                              // acierto: se queda en verde y fijo
+    P.hechos.add(l); P.selL = P.selR = null;
+    sonar(true);
+    if (P.hechos.size >= P.items.length) { render(); return; }
+    parPintar();
+  } else {                                                    // fallo: rojo un momento y se borra la selección, sin castigo
+    P.fallos++; P.malas[l] = true;
+    if (parMarcarDificil(P.items[l].e)) P.marcadas.push(P.items[l].w);
+    sonar(false);
+    P.bloqueo = true; P.mal = {l, r};
+    parPintar();
+    const q = P;
+    setTimeout(() => { if (PAR !== q) return; q.bloqueo = false; q.mal = null; q.selL = q.selR = null; parPintar(); }, 700);
+  }
+}
+function viewEmparejar(code){
+  const lv = DATA.levels.find(l => l.code === code);
+  if (!lv) {
+    const btns = DATA.levels.map(l => `<button class="btn grande ghost" onclick="go('#/emparejar/${l.code}')">${l.icon || ''} ${l.code} · ${esc(l.name)}</button>`).join('');
+    return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🧩 Emparejar palabras</h2><p class="pcap">Une cada palabra en inglés con su traducción. Elige un nivel.</p>${btns}`;
+  }
+  if (!PAR || PAR.level !== code) parNueva(code);
+  const P = PAR, cab = `<div class="crumb" onclick="go('#/emparejar')">← Elegir nivel</div><h2>🧩 ${lv.icon || ''} ${code} · Emparejar</h2>`;
+  if (!P.items.length) return `${cab}<div class="card"><p>Este nivel todavía no tiene palabras con traducción para jugar.</p><button class="btn ghost" onclick="go('#/')">Volver al menú</button></div>`;
+  if (P.hechos.size >= P.items.length) {
+    const primera = P.items.filter((_, i) => !P.malas[i]).length;
+    return `${cab}<div class="card center"><div class="big">${primera} de ${P.items.length}</div><p class="pcap">a la primera</p>
+      <p><b>${P.fallos}</b> ${P.fallos === 1 ? 'fallo' : 'fallos'}</p>
+      ${P.marcadas.length ? `<p class="pcap">Marcadas como difíciles: ${P.marcadas.map(esc).join(', ')}</p>` : ''}
+      <button class="btn" onclick="parNueva('${code}');render()">🔁 Otra partida</button>
+      <button class="btn ghost" onclick="go('#/')">Volver al menú</button></div>`;
+  }
+  return `${cab}<p class="pcap">Toca una palabra en inglés y su traducción para unirlas. <span id="par-cuenta">${P.hechos.size} de ${P.items.length} unidas.</span></p><div id="par-tablero">${parTablero()}</div>`;
+}
+
+// ---------- desafío de 60 segundos: 10 preguntas de examen de un nivel, con ranking personal (S.desafios) ----------
+// Es opcional: no toca el progreso de unidades ni la racha. Lo único que se guarda es la puntuación, dentro de S (viaja a la nube y a la copia de seguridad).
+const DES_SEG = 60, DES_N = 10, DES_TOP = 5;
+let DES = null;
+function desLista(code){
+  const l = S.desafios && Array.isArray(S.desafios[code]) ? S.desafios[code] : [];
+  return l.filter(x => x && typeof x.p === 'number' && typeof x.f === 'string');
+}
+function desFecha(f){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : esc(f || ''); }
+function desPreparar(code){
+  const pool = [];
+  UNITS.filter(u => u.level === code).forEach(u => u.exam.forEach(q => pool.push({q, uid: u.id})));
+  DES = {level: code, estado: 'listo', items: shuffle(pool).slice(0, DES_N), i: 0, ac: 0, resp: 0, fin: 0, timer: null, espera: null, res: null};
+}
+function desCancelar(){
+  if (!DES) return;
+  if (DES.timer) clearInterval(DES.timer);
+  if (DES.espera) clearTimeout(DES.espera);
+  DES = null;
+}
+function desEmpezar(){
+  if (!DES || DES.estado !== 'listo') return;
+  DES.estado = 'jugando'; DES.fin = Date.now() + DES_SEG * 1000;
+  DES.timer = setInterval(desTick, 100);
+  render();
+}
+function desRestante(){ return Math.max(0, DES.fin - Date.now()); }
+function desTick(){
+  if (!DES || DES.estado !== 'jugando') return;
+  const r = desRestante();
+  const b = document.getElementById('des-barra'), t = document.getElementById('des-seg');
+  if (b) { b.style.width = (100 * r / (DES_SEG * 1000)).toFixed(1) + '%'; b.classList.toggle('poco', r <= 10000); }
+  if (t) t.textContent = Math.ceil(r / 1000) + ' s';
+  if (r <= 0) desTerminar();
+}
+function desPregunta(){
+  const it = DES.items[DES.i];
+  return `<div class="pcap">Pregunta ${DES.i + 1} de ${DES.items.length}</div>${quiz(it.q, 'des', null, {uid: it.uid, n: 0})}`;
+}
+function desResponder(right, fb){
+  if (!DES || DES.estado !== 'jugando') return;
+  DES.resp++; if (right) DES.ac++;
+  fb.className = 'fb ' + (right ? 'ok' : 'bad');
+  fb.textContent = right ? '¡Correcto! ✅' : 'La correcta: ' + DES.items[DES.i].q.answer;
+  const d = DES;
+  d.espera = setTimeout(() => {
+    if (DES !== d || d.estado !== 'jugando') return;
+    d.i++;
+    if (d.i >= d.items.length) { desTerminar(); return; }
+    const c = document.getElementById('des-q'); if (c) c.innerHTML = desPregunta();
+  }, right ? 450 : 1100);
+}
+function desTerminar(){
+  if (!DES || DES.estado !== 'jugando') return;
+  if (DES.timer) { clearInterval(DES.timer); DES.timer = null; }
+  if (DES.espera) { clearTimeout(DES.espera); DES.espera = null; }
+  const seg = Math.floor(desRestante() / 1000);
+  const p = DES.ac * 10 + seg;                                   // aciertos × 10, más 1 punto por cada segundo que sobre
+  const antes = desLista(DES.level);
+  const mejor = antes.length ? antes[0].p : 0;
+  let nueva = false;
+  if (p > 0) {
+    const l = antes.concat([{p, f: fechaHoy(), a: DES.ac, n: DES.resp, s: seg}]);
+    l.sort((x, y) => y.p - x.p);                                 // a igual puntuación se queda delante la más antigua (sort estable)
+    S.desafios = (S.desafios && typeof S.desafios === 'object' && !Array.isArray(S.desafios)) ? S.desafios : {};
+    S.desafios[DES.level] = l.slice(0, DES_TOP);
+    nueva = p > mejor; save();
+  }
+  DES.estado = 'fin'; DES.res = {p, seg, ac: DES.ac, n: DES.resp, nueva, agotado: seg === 0 && DES.resp < DES.items.length};
+  render();
+}
+function desRanking(code, marca){
+  const l = desLista(code);
+  if (!l.length) return '<p class="pcap">Todavía no tienes puntuaciones en este nivel.</p>';
+  return `<ol class="desrank">${l.map((x, i) => `<li class="${marca === i ? 'es' : ''}"><b>${x.p}</b> puntos<span>${desFecha(x.f)}</span></li>`).join('')}</ol>`;
+}
+function viewDesafio(code){
+  const niveles = DATA.levels.map(l => l.code);
+  if (!code || niveles.indexOf(code) < 0) {
+    const filas = DATA.levels.map(l => {
+      const m = desLista(l.code);
+      return `<div class="desfila" onclick="go('#/desafio/${l.code}')"><div><b>${l.icon || ''} ${l.code}</b><div class="pcap" style="margin:0">${esc(l.name)}</div></div>
+        <div class="desmejor">${m.length ? `Mejor: <b>${m[0].p}</b>` : 'Sin puntuación'}</div></div>`;
+    }).join('');
+    return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>⏱️ Desafío de 60 segundos</h2>
+      <p class="pcap">10 preguntas de examen al azar del nivel que elijas, en 60 segundos. Es opcional y no cambia tu progreso. Elige el nivel:</p>${filas}`;
+  }
+  if (!DES || DES.level !== code) desPreparar(code);
+  const lv = DATA.levels.find(l => l.code === code);
+  const cab = `<div class="crumb" onclick="go('#/desafio')">← Elegir nivel</div><h2>⏱️ Desafío · ${lv.icon || ''} ${code}</h2>`;
+  if (DES.estado === 'listo') {
+    return `${cab}<div class="card"><p>Tienes <b>${DES_SEG} segundos</b> para contestar hasta ${DES.items.length} preguntas. Cada acierto vale 10 puntos y cada segundo que sobre suma 1.</p>
+      <p class="pcap">Si sales a mitad, el desafío se cancela y no se guarda nada.</p>
+      <button class="btn" onclick="desEmpezar()">▶ Empezar</button></div>
+      <div class="card"><h3>Tus mejores puntuaciones</h3>${desRanking(code)}</div>`;
+  }
+  if (DES.estado === 'jugando') {
+    const r = desRestante();
+    return `${cab}<div class="destiempo" role="timer" aria-label="Tiempo que queda"><div class="destrack"><div id="des-barra" class="desfill${r <= 10000 ? ' poco' : ''}" style="width:${(100 * r / (DES_SEG * 1000)).toFixed(1)}%"></div></div><b id="des-seg">${Math.ceil(r / 1000)} s</b></div>
+      <div class="card" id="des-q">${desPregunta()}</div>`;
+  }
+  const R = DES.res, l = desLista(code);
+  const pos = R.p > 0 ? l.findIndex(x => x.p === R.p && x.f === fechaHoy()) : -1;
+  return `${cab}<div class="card center">
+      <div class="big">${R.p}</div><p class="pcap">puntos</p>
+      <p><b>${R.ac} de ${R.n}</b> aciertos · ${R.seg > 0 ? `sobraron <b>${R.seg} s</b>` : '<b>se acabó el tiempo</b>'}</p>
+      <p class="pcap">${R.ac} × 10 + ${R.seg} = ${R.p}</p>
+      ${R.nueva ? '<p class="fb ok">🏆 ¡Nueva mejor puntuación!</p>' : ''}
+      <button class="btn" onclick="desPreparar('${code}');render()">🔁 Otra vez</button>
+      <button class="btn ghost" onclick="go('#/desafio')">Elegir nivel</button></div>
+    <div class="card"><h3>Tus 5 mejores en ${code}</h3>${desRanking(code, pos)}</div>`;
+}
+
 // ---------- audios sin conexión: descarga por nivel (caché «mi-ingles-audio», que sw.js no borra al actualizar) ----------
 const AUDIO_CACHE = 'mi-ingles-audio';
 const DESC_WIFI_MB = 110;           // a partir de aquí se recomienda wifi
@@ -1637,17 +1977,31 @@ function cargarLib(){
   });
 }
 // --- pantalla de entrada: es lo único que se ve sin sesión
+let AUTH_TAB = 'entrar';          // 'entrar' | 'crear'
 function viewEntrar(){
-  const m = AUTH_MSG, sinRed = !SB && LIB_ESTADO === 'fallo';
-  return `<div class="card"><h2>🎓 Entra a Mi inglés</h2>
-    <p>Con tu correo y contraseña tu progreso se guarda en la nube y puedes seguir desde cualquier móvil.</p>
-    <form id="au-form" onsubmit="authAccion(false);return false" novalidate>
-      <label class="campo">Correo<input type="email" id="au-mail" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false"></label>
-      <label class="campo">Contraseña<input type="password" id="au-pass" autocomplete="current-password"></label>
-      <button type="submit" class="btn" id="au-entrar">Entrar</button>
-      <button type="button" class="btn ghost" id="au-crear" onclick="authAccion(true)">Crear cuenta</button>
+  const m = AUTH_MSG, sinRed = !SB && LIB_ESTADO === 'fallo', crear = AUTH_TAB === 'crear';
+  const campos = `<label class="campo">Usuario<input type="email" id="au-mail" placeholder="Tu correo" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false"></label>
+      <label class="campo">Contraseña<input type="password" id="au-pass" autocomplete="${crear ? 'new-password' : 'current-password'}"></label>`
+    + (crear ? `<label class="campo">Código de invitación<input type="text" id="au-codigo" autocomplete="off" autocapitalize="none" spellcheck="false"></label>` : '');
+  return `<div class="card entrada"><h2>Mi inglés</h2>
+    <p>Inicia sesión para seguir tu progreso en cualquier dispositivo.</p>
+    <div class="pestanas" role="tablist">
+      <button type="button" role="tab" aria-selected="${!crear}" class="pestana ${crear ? '' : 'on'}" onclick="authTab('entrar')">Entrar</button>
+      <button type="button" role="tab" aria-selected="${crear}" class="pestana ${crear ? 'on' : ''}" onclick="authTab('crear')">Crear cuenta</button>
+    </div>
+    <form id="au-form" onsubmit="authAccion(${crear});return false" novalidate>
+      ${campos}
+      ${crear ? '<button type="submit" class="btn turquesa" id="au-crear">Crear cuenta</button>' : '<button type="submit" class="btn turquesa" id="au-entrar">Entrar</button>'}
     </form>
     <div id="au-msg" aria-live="polite">${m ? `<p class="fb ${m.ok ? 'ok' : 'bad'}">${esc(m.texto)}</p>` : (sinRed || !navigator.onLine ? '<p class="fb bad">Necesitas conexión para entrar.</p>' : '')}</div></div>`;
+}
+function authTab(t){
+  if (AUTH_OCUPADO || t === AUTH_TAB) return;
+  const v = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+  const mail = v('au-mail'), pass = v('au-pass');                 // lo escrito en usuario y contraseña se conserva al cambiar de pestaña
+  AUTH_TAB = t; AUTH_MSG = null;
+  const app = document.getElementById('app'); app.innerHTML = viewEntrar();
+  document.getElementById('au-mail').value = mail; document.getElementById('au-pass').value = pass;
 }
 function pintarEntrada(){
   document.body.classList.add('sin-sesion');
@@ -1663,30 +2017,43 @@ function actualizarAuthMsg(){
   box.innerHTML = m ? `<p class="fb ${m.ok ? 'ok' : 'bad'}">${esc(m.texto)}</p>` : (sinRed || !navigator.onLine ? '<p class="fb bad">Necesitas conexión para entrar.</p>' : '');
 }
 function authMsg(ok, texto){ AUTH_MSG = {ok, texto}; actualizarAuthMsg(); }
+function errorCrear(e){          // el servidor comprueba el código de invitación; si rechaza la cuenta por eso, no da detalles útiles: se muestra el aviso en español
+  const c = String((e && e.code) || '').toLowerCase(), m = String((e && e.message) || '').toLowerCase();
+  const http = e && typeof e.status === 'number' ? e.status : 0;          // la librería llama «AuthRetryableFetchError» también a un 500 del servidor: si hubo respuesta, no es falta de conexión
+  if (http === 502 || http === 503 || http === 504) return 'No se pudo completar. Inténtalo de nuevo.';
+  if (!http && esRed(e)) return 'Sin conexión';
+  if (c === 'user_already_exists' || c === 'email_exists' || /already registered|already been registered|already exists/.test(m)) return 'Ya existe una cuenta con ese correo';
+  if (c === 'weak_password' || /password should be|weak password/.test(m)) return 'La contraseña es demasiado débil: usa al menos 6 caracteres.';
+  if (c === 'email_address_invalid' || /invalid format|unable to validate email|email address .* is invalid/.test(m)) return 'El correo no es válido.';
+  if (/rate limit|too many|security purposes/.test(m) || c.indexOf('rate_limit') >= 0) return 'Demasiados intentos. Espera un momento y vuelve a probar.';
+  return 'Código de invitación no válido o ya usado';
+}
 async function authAccion(crear){
   if (AUTH_OCUPADO) return;
   const mail = (document.getElementById('au-mail').value || '').trim(), pass = document.getElementById('au-pass').value || '';
+  const cod = crear ? (document.getElementById('au-codigo') ? document.getElementById('au-codigo').value : '') : '';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { authMsg(false, 'El correo no es válido.'); return; }
   if (!pass) { authMsg(false, 'Escribe tu contraseña.'); return; }
   if (crear && pass.length < 6) { authMsg(false, 'La contraseña debe tener al menos 6 caracteres.'); return; }
+  if (crear && !cod.trim()) { authMsg(false, 'Escribe tu código de invitación'); return; }      // sin código no se envía nada
   AUTH_OCUPADO = true;
   const bs = [document.getElementById('au-entrar'), document.getElementById('au-crear')];
   bs.forEach(b => b && (b.disabled = true));
   try {
     if (!SB && LIB_ESTADO === 'cargando' && LIB_PROMESA) { authMsg(true, 'Conectando…'); await LIB_PROMESA; }
-    if (!SB) { authMsg(false, 'Necesitas conexión para entrar.'); return; }
+    if (!SB) { authMsg(false, crear ? 'Sin conexión' : 'Necesitas conexión para entrar.'); return; }
     if (crear) {
-      const r = await SB.auth.signUp({email: mail, password: pass});
+      const r = await SB.auth.signUp({email: mail, password: pass, options: {data: {codigo: cod}}});       // el código va tal cual lo escribió la persona
       if (r.error) throw r.error;
       if (r.data && r.data.session) { entrarConUsuario(r.data.session.user); return; }                 // sin confirmación: entra directamente
-      if (r.data && r.data.user && r.data.user.identities && r.data.user.identities.length === 0) authMsg(false, 'Ese correo ya tiene cuenta. Pulsa «Entrar».');
+      if (r.data && r.data.user && r.data.user.identities && r.data.user.identities.length === 0) authMsg(false, 'Ya existe una cuenta con ese correo');
       else authMsg(true, 'Revisa tu correo para confirmar la cuenta y luego entra.');
     } else {
       const r = await SB.auth.signInWithPassword({email: mail, password: pass});
       if (r.error) throw r.error;
       if (r.data && r.data.session) entrarConUsuario(r.data.session.user);
     }
-  } catch(e){ authMsg(false, errorAuth(e)); }
+  } catch(e){ authMsg(false, crear ? errorCrear(e) : errorAuth(e)); }
   finally { AUTH_OCUPADO = false; bs.forEach(b => b && b.isConnected && (b.disabled = false)); }
 }
 window.addEventListener('online', () => {
@@ -1718,6 +2085,8 @@ function viewHome(){
     ? `<div style="margin-bottom:10px"><button class="btn ghost" disabled>Repaso hecho hoy ✔</button> <span class="pcap">${repasoGuardado().aciertos} de ${repasoGuardado().total}</span></div>`
     : `<div style="margin-bottom:10px"><button class="btn" onclick="go('#/repaso')">🔁 Repaso de hoy</button></div>`;
   return `${continueButton()}<div style="margin-bottom:10px">${estBtn}</div>${repBtn}${difBtn}${errBtn}<h2>Elige tu nivel</h2><div class="grid">${cards}</div>
+    ${esAdmin() ? `<div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/codigos')">🎟️ Códigos de invitación</button></div>` : ''}
+    <div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/desafio')">⏱️ Desafío de 60 segundos</button> <button class="btn ghost" onclick="go('#/emparejar')">🧩 Emparejar palabras</button></div>
     <div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/descargas')">📥 Descargar para estudiar sin conexión</button><p class="pcap" id="desc-home"></p></div>
     <div class="card"><h3>Logros</h3>${bl}<div style="margin-top:8px"><button class="btn ghost" onclick="go('#/logros')">🏅 Ver todos los logros</button></div></div>
     <div class="center"><button class="btn ghost" onclick="go('#/copia')">💾 Copia de seguridad</button>
@@ -2023,6 +2392,9 @@ function render(){
   const app = document.getElementById('app');
   let html;
   if (h[0] === 'level') html = viewLevel(h[1]);
+  else if (h[0] === 'codigos') html = esAdmin() ? '<div class="leccion">' + viewCodigos() + '</div>' : viewHome();      // solo existe para el administrador
+  else if (h[0] === 'emparejar') html = '<div class="leccion">' + viewEmparejar(h[1]) + '</div>';
+  else if (h[0] === 'desafio') { if (!h[1]) desCancelar(); html = '<div class="leccion">' + viewDesafio(h[1]) + '</div>'; }
   else if (h[0] === 'descargas') html = '<div class="leccion">' + viewDescargas() + '</div>';
   else if (h[0] === 'logros') html = '<div class="leccion">' + viewLogros() + '</div>';
   else if (h[0] === 'semana') html = '<div class="leccion">' + viewSemana() + '</div>';
@@ -2044,6 +2416,7 @@ function render(){
   try { descHome(); } catch(e){}
   window.scrollTo(0, 0);
 }
+window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/desafio')) desCancelar(); });   // salir a mitad: se cancela y no se guarda nada
 window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/exam') && !location.hash.startsWith('#/empezar')) EX = null; if (!location.hash.startsWith('#/repaso')) REP = null; render(); });
 render();
 
