@@ -155,6 +155,14 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .ah-t:disabled{cursor:default}
 .ah-t.ok{background:var(--okbg);border-color:var(--ok);color:var(--okink)}
 .ah-t.mal{background:var(--badbg);border-color:var(--bad);color:var(--badink)}
+.pd{cursor:pointer;border:2px solid var(--line)}
+.pd h3{margin:0 0 6px}
+.pd-fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pd-w{font-size:34px;font-weight:800;color:var(--a);overflow-wrap:anywhere}
+.pd-t{font-size:18px;margin:2px 0 6px;overflow-wrap:anywhere}
+.pd-ej{margin:6px 0;overflow-wrap:anywhere}
+.pd-q{margin:10px 0 6px;font-weight:600}
+.grow.glos-dia{background:var(--gold);border-radius:12px;box-shadow:0 0 0 2px var(--a)}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -301,7 +309,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '35';   // igual que la caché mi-ingles-v35 en sw.js
+const APP_VERSION = '36';   // igual que la caché mi-ingles-v36 en sw.js
 const Q = {};
 let EX = null;
 
@@ -1391,6 +1399,132 @@ function viewAhorcado(){
   return `${cab}<div class="card" id="ah-caja">${ahCaja()}</div>`;
 }
 
+// ---------- palabra del día: sale del glosario de A1 y A2 según el día del año (no se guarda nada) ----------
+let PD = null, PD_LISTA = null;
+function diaDelAnio(d){ d = d || new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 0)) / 864e5); }
+function pdLista(){        // A1 y luego A2, por orden de aparición, sin repetir
+  if (PD_LISTA) return PD_LISTA;
+  const out = [];
+  ['A1', 'A2'].forEach(code => {
+    const vistos = new Set();
+    UNITS.filter(u => u.level === code).forEach(u => u.lessons.forEach(l => vocabPalabras(u.id, l.n).forEach(x => {
+      const w = (x.w || '').trim(), k = w.toLowerCase();
+      if (!w || vistos.has(k)) return;
+      vistos.add(k); out.push({w, k, nivel: code});
+    })));
+  });
+  return PD_LISTA = out;
+}
+function pdEntrada(it){ return glosarioNivel(it.nivel).find(e => e.w.toLowerCase() === it.k) || {w: it.w, t: '', occ: []}; }
+function pdEjemplo(it, e){       // una frase de las lecciones donde aparece la palabra (solo si la hay)
+  const re = new RegExp("(^|[^\\p{L}'])" + it.k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "($|[^\\p{L}'])", 'iu');
+  for (const o of e.occ) { const f = cfDeUnidad(o.uid).find(x => re.test(x)); if (f) return f; }
+  return '';
+}
+function rngDia(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function pdHoy(){
+  const hoy = new Date(), clave = hoy.getFullYear() + '-' + diaDelAnio(hoy);
+  if (PD && PD.clave === clave) return PD;
+  const L = pdLista(); if (!L.length) return null;
+  const it = L[(diaDelAnio(hoy) - 1) % L.length], e = pdEntrada(it);
+  const primera = t => (t || '').split(' / ')[0].trim();
+  const t = e.t, ok = primera(t);
+  let q = null;
+  if (ok) {                                             // «¿Qué significa?»: la correcta y 2 de otras palabras del glosario
+    const rnd = rngDia(hoy.getFullYear() * 1000 + diaDelAnio(hoy));
+    const propias = t.split(' / ').map(x => x.trim().toLowerCase());
+    const otras = [];
+    for (let k = 0, n = 0; k < 400 && otras.length < 2 && n < L.length * 3; k++, n++) {
+      const o = L[Math.floor(rnd() * L.length)]; if (o.k === it.k) continue;
+      const tr = primera(pdEntrada(o).t);
+      if (tr && propias.indexOf(tr.toLowerCase()) < 0 && otras.indexOf(tr) < 0) otras.push(tr);
+    }
+    const ops = [ok, ...otras];
+    for (let i = ops.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [ops[i], ops[j]] = [ops[j], ops[i]]; }
+    q = {ok, ops, resp: null};
+  }
+  return PD = {clave, it, e, t, ej: pdEjemplo(it, e), q};
+}
+function pdInterior(){
+  const P = pdHoy(), q = P.q;
+  const opciones = q ? `<p class="pd-q">¿Qué significa?</p><div class="opts">${q.ops.map((o, i) => `<button type="button" class="opt ${q.resp === null ? '' : o === q.ok ? 'right' : (q.resp === i ? 'wrong' : '')}" ${q.resp === null ? '' : 'disabled'} onclick="event.stopPropagation();pdResponder(${i})">${esc(o)}</button>`).join('')}</div>
+      ${q.resp === null ? '' : `<p class="fb ${q.ops[q.resp] === q.ok ? 'ok' : 'bad'}" role="status">${q.ops[q.resp] === q.ok ? '¡Correcto!' : 'La respuesta correcta es: ' + esc(q.ok)}</p>`}` : '';
+  return `<h3>📅 Palabra del día</h3>
+    <div class="pd-fila"><span class="pd-w">${esc(P.it.w)}</span><button type="button" class="btn ghost chico" aria-label="Escuchar la palabra" title="Escuchar" onclick="event.stopPropagation();pdOir()">🔊</button></div>
+    ${P.t ? `<div class="pd-t">${esc(P.t)}</div>` : ''}
+    ${P.ej ? `<div class="pd-ej"><i>${esc(P.ej)}</i> <button type="button" class="btn ghost chico" aria-label="Escuchar el ejemplo" title="Escuchar" onclick="event.stopPropagation();pdOirEjemplo()">🔊</button></div>` : ''}
+    ${opciones}
+    <div class="pcap" style="margin:8px 0 0">Toca la tarjeta para verla en el glosario · ${P.it.nivel}</div>`;
+}
+function palabraDelDia(){
+  try { if (!pdHoy()) return ''; return `<div class="card pd" id="pd-tarjeta" role="link" tabindex="0" onclick="pdAbrir()" onkeydown="if(event.key==='Enter')pdAbrir()">${pdInterior()}</div>`; }
+  catch(e){ return ''; }
+}
+function pdAbrir(){ const P = pdHoy(); if (P) go('#/glosario/' + P.it.nivel + '/' + encodeURIComponent(P.it.w)); }
+function pdResponder(i){ const P = pdHoy(); if (!P || !P.q || P.q.resp !== null) return; P.q.resp = i; const c = document.getElementById('pd-tarjeta'); if (c) c.innerHTML = pdInterior(); }
+function vozDisponible(){ return 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'; }
+function pdOir(){ const P = pdHoy(); if (P && vozDisponible()) { try { tts(P.it.w); } catch(e){} } }
+function pdOirEjemplo(){ const P = pdHoy(); if (P && P.ej && vozDisponible()) { try { tts(P.ej); } catch(e){} } }
+function glosResaltar(h){          // de la palabra del día: se resalta la palabra en el glosario del nivel
+  if (h[0] !== 'glosario' || !h[1] || !h[2]) return;
+  const w = decodeURIComponent(h[2]).toLowerCase();
+  const fila = [...document.querySelectorAll('#glos-lista .grow')].find(f => { const b = f.querySelector('.gbody b'); return b && b.textContent.trim().toLowerCase() === w; });
+  if (fila) { fila.classList.add('glos-dia'); setTimeout(() => { try { fila.scrollIntoView({block: 'center'}); } catch(e){} }, 60); }   // después del scrollTo(0,0) de render()
+}
+
+// ---------- falsos amigos: 5 preguntas al azar de esta lista (no se guarda nada) ----------
+const FALSOS = [
+  {w: 'actually', ok: 'en realidad', mal: 'actualmente', ej: 'Actually, I like it.'},
+  {w: 'embarrassed', ok: 'avergonzado', mal: 'embarazada', ej: 'I felt embarrassed.'},
+  {w: 'library', ok: 'biblioteca', mal: 'librería', ej: 'The library is open today.'},
+  {w: 'assist', ok: 'ayudar', mal: 'asistir', ej: 'She will assist the teacher.'},
+  {w: 'sensible', ok: 'sensato', mal: 'sensible', ej: 'He is a sensible person.'},
+  {w: 'eventually', ok: 'al final', mal: 'eventualmente', ej: 'We will eventually arrive.'},
+  {w: 'constipated', ok: 'estreñido', mal: 'constipado', ej: 'I am constipated today.'},
+  {w: 'pretend', ok: 'fingir', mal: 'pretender', ej: 'He pretended to sleep.'},
+  {w: 'carpet', ok: 'alfombra', mal: 'carpeta', ej: 'The carpet is blue.'},
+  {w: 'fabric', ok: 'tela', mal: 'fábrica', ej: 'This fabric is soft.'},
+  {w: 'lecture', ok: 'conferencia', mal: 'lectura', ej: 'The lecture was long.'},
+  {w: 'injury', ok: 'herida', mal: 'injuria', ej: 'He had an injury on his leg.'}];
+const FA_N = 5;
+let FA = null;
+function faNueva(){
+  FA = {pregs: shuffle(FALSOS).slice(0, FA_N).map(f => Object.assign({}, f, {ops: shuffle([f.ok, f.mal])})), i: 0, ac: 0, resp: null, fin: false};
+}
+function faCaja(){
+  const P = FA.pregs[FA.i], r = FA.resp;
+  const ops = P.ops.map((o, k) => `<button type="button" class="opt ${r === null ? '' : o === P.ok ? 'right' : (r === k ? 'wrong' : '')}" ${r === null ? '' : 'disabled'} onclick="faResponder(${k})">${esc(o)}</button>`).join('');
+  const bien = r !== null && P.ops[r] === P.ok;
+  return `<div class="pcap">Pregunta ${FA.i + 1} de ${FA.pregs.length}</div>
+    <div class="pd-fila"><span class="pd-w">${esc(P.w)}</span><button type="button" class="btn ghost chico" aria-label="Escuchar la palabra" title="Escuchar" onclick="faOir('${P.w}')">🔊</button></div>
+    <p class="pd-q">¿Qué significa en español?</p><div class="opts">${ops}</div>
+    ${r === null ? '' : bien ? '<p class="fb ok" role="status">¡Bien!</p>' : `<p class="fb bad" role="status">Cuidado: ${esc(P.w)} es ${esc(P.ok)}, no ${esc(P.mal)}</p>`}
+    ${r === null ? '' : `<div class="pd-ej"><i>${esc(P.ej)}</i> <button type="button" class="btn ghost chico" aria-label="Escuchar el ejemplo" title="Escuchar" onclick="faOirEj()">🔊</button></div>`}
+    <div class="fb bad" id="fa-err" role="status"></div>
+    <div class="cf-btns"><button class="btn" ${r === null ? 'disabled' : ''} onclick="faSiguiente()">Siguiente</button></div>`;
+}
+function faPintar(){ const c = document.getElementById('fa-caja'); if (c && FA && !FA.fin) c.innerHTML = faCaja(); }
+function faResponder(k){ if (!FA || FA.fin || FA.resp !== null) return; const P = FA.pregs[FA.i]; FA.resp = k; if (P.ops[k] === P.ok) FA.ac++; faPintar(); }
+function faDecir(t){
+  const e = document.getElementById('fa-err'); if (e) e.textContent = '';
+  if (!vozDisponible()) { if (e) e.textContent = 'Tu navegador no puede leer en voz alta.'; return; }
+  try { tts(t); } catch(err){}
+}
+function faOir(w){ faDecir(w); }
+function faOirEj(){ if (FA && !FA.fin) faDecir(FA.pregs[FA.i].ej); }
+function faSiguiente(){
+  if (!FA || FA.resp === null) return;
+  FA.i++; FA.resp = null;
+  if (FA.i >= FA.pregs.length) { FA.fin = true; render(); return; }
+  faPintar();
+}
+function viewFalsos(){
+  const cab = `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🪤 Falsos amigos</h2><p class="pcap">Palabras en inglés que se parecen al español pero significan otra cosa.</p>`;
+  if (FA.fin) return `${cab}<div class="card center"><div class="big">${FA.ac} de ${FA.pregs.length}</div><h3>Has acertado ${FA.ac} de ${FA.pregs.length}</h3>
+      <button class="btn" onclick="faNueva();render()">🔁 Empezar de nuevo</button><button class="btn ghost" onclick="go('#/')">Volver al menú</button></div>`;
+  return `${cab}<div class="card" id="fa-caja">${faCaja()}</div>`;
+}
+
 // ---------- panel de códigos de invitación (solo administrador) ----------
 // El botón solo se muestra con el correo del administrador; lo que de verdad protege la tabla son las reglas del servidor (RLS), no esto.
 const ADMIN_MAIL = 'gutierezronaldo2@gmail.com';
@@ -2323,7 +2457,7 @@ function viewHome(){
   }).join('');
   const bl = badges().map(b => `<span class="badge ${b.on ? 'on' : ''}">${b.on ? '🏅' : '🔒'} ${esc(b.name)}</span>`).join('');
   const N = S.nivel;
-  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button>`
+  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="faNueva();go('#/falsos')">🪤 Falsos amigos</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button>`
     + (N ? ` <span class="pcap" style="cursor:pointer" onclick="go('#/sugerencia')">Último resultado: ${N.level}, unidad ${N.num} (ver)</span>` : '');
   const nDif = difOrdenadas().length;
   const difBtn = nDif ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/dificiles')">⭐ Palabras difíciles (${nDif})</button></div>` : '';
@@ -2332,7 +2466,7 @@ function viewHome(){
   const repBtn = !hayAprobadas() ? '' : repasoHechoHoy()
     ? `<div style="margin-bottom:10px"><button class="btn ghost" disabled>Repaso hecho hoy ✔</button> <span class="pcap">${repasoGuardado().aciertos} de ${repasoGuardado().total}</span></div>`
     : `<div style="margin-bottom:10px"><button class="btn" onclick="go('#/repaso')">🔁 Repaso de hoy</button></div>`;
-  return `${continueButton()}<div style="margin-bottom:10px">${estBtn}</div>${repBtn}${difBtn}${errBtn}<h2>Elige tu nivel</h2><div class="grid">${cards}</div>
+  return `${continueButton()}${palabraDelDia()}<div style="margin-bottom:10px">${estBtn}</div>${repBtn}${difBtn}${errBtn}<h2>Elige tu nivel</h2><div class="grid">${cards}</div>
     ${esAdmin() ? `<div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/codigos')">🎟️ Códigos de invitación</button></div>` : ''}
     <div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/desafio')">⏱️ Desafío de 60 segundos</button> <button class="btn ghost" onclick="go('#/emparejar')">🧩 Emparejar palabras</button></div>
     <div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/descargas')">📥 Descargar para estudiar sin conexión</button><p class="pcap" id="desc-home"></p></div>
@@ -2645,6 +2779,7 @@ function render(){
   if (h[0] === 'level') html = viewLevel(h[1]);
   else if (h[0] === 'frases') { if (!U(h[1])) html = viewHome(); else { if (!CF || CF.uid !== h[1]) cfNueva(h[1]); html = '<div class="leccion">' + viewFrases() + '</div>'; } }
   else if (h[0] === 'ahorcado') { if (!U(h[1])) html = viewHome(); else { if (!AH || AH.uid !== h[1]) ahNueva(h[1]); html = '<div class="leccion">' + viewAhorcado() + '</div>'; } }
+  else if (h[0] === 'falsos') { if (!FA) faNueva(); html = '<div class="leccion">' + viewFalsos() + '</div>'; }
   else if (h[0] === 'codigos') html = esAdmin() ? '<div class="leccion">' + viewCodigos() + '</div>' : viewHome();      // solo existe para el administrador
   else if (h[0] === 'emparejar') html = '<div class="leccion">' + viewEmparejar(h[1]) + '</div>';
   else if (h[0] === 'desafio') { if (!h[1]) desCancelar(); html = '<div class="leccion">' + viewDesafio(h[1]) + '</div>'; }
@@ -2667,6 +2802,7 @@ function render(){
   app.innerHTML = html;
   stats();
   try { descHome(); } catch(e){}
+  try { glosResaltar(h); } catch(e){}
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/desafio')) desCancelar(); });   // salir a mitad: se cancela y no se guarda nada
