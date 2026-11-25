@@ -168,6 +168,14 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .ex-en{font-size:20px;font-weight:700;line-height:1.3}
 .ex-esp{color:var(--muted,inherit);opacity:.85;margin-top:2px}
 .ex-es{font-size:19px;font-weight:600;overflow-wrap:anywhere;margin:4px 0 10px}
+.car{text-align:center}
+.car-pista{color:var(--muted);font-size:17px;font-weight:600}
+.car-tit{font-size:26px;font-weight:800;line-height:1.2;margin:8px 0 6px;overflow-wrap:anywhere}
+.car-estado{min-height:1.6em;margin:6px 0 10px;color:var(--muted);font-weight:600;overflow-wrap:anywhere}
+.car .btn{display:block;width:100%;margin:0;min-height:56px;font-size:16px;font-weight:700;padding:10px 8px}
+.car .car-play{min-height:88px;font-size:26px;border-radius:18px;margin-bottom:12px}
+.car-fila{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.car .btn.car-on{background:var(--a);color:#fff}
 .opts .opt{overflow-wrap:anywhere}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
@@ -315,7 +323,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '37';   // igual que la caché mi-ingles-v37 en sw.js
+const APP_VERSION = '38';   // igual que la caché mi-ingles-v38 en sw.js
 const Q = {};
 let EX = null;
 
@@ -1550,7 +1558,19 @@ const EXPRESIONES = [
     ["I'm really sorry about that.", 'Lo siento de verdad.'],
     ["Sorry, I didn't mean to do that.", 'Perdón, no quería hacerlo.'],
     ['Excuse me, can you help me?', 'Perdona, ¿me ayudas?'],
-    ["It won't happen again.", 'No volverá a pasar.']]}];
+    ["It won't happen again.", 'No volverá a pasar.']]},
+  {id: 'medico', t: '🏥 En el médico', f: [
+    ['I have a headache.', 'Tengo dolor de cabeza.'],
+    ['I have a fever.', 'Tengo fiebre.'],
+    ['I feel sick.', 'Me siento mal.'],
+    ["I'm allergic to penicillin.", 'Soy alérgico a la penicilina.'],
+    ['How often should I take this?', '¿Cada cuánto debo tomarlo?']]},
+  {id: 'viaje', t: '✈️ De viaje', f: [
+    ['I have a reservation under Ana.', 'Tengo una reserva a nombre de Ana.'],
+    ['Where is the nearest train station?', '¿Dónde está la estación de tren más cercana?'],
+    ['How much is a ticket to London?', '¿Cuánto cuesta un billete a Londres?'],
+    ['Could you take a photo of us, please?', '¿Nos puede hacer una foto, por favor?'],
+    ['Which gate is it, please?', '¿De qué puerta es, por favor?']]}];
 const EX_N = 5;
 let EXS = null;
 function exInicio(){ EXS = {sit: null, prac: null}; }
@@ -1598,6 +1618,150 @@ function viewExpresiones(){
   return `${cab}<p class="pcap">${s.f.length} frases</p>` + s.f.map((x, k) => `<div class="card ex-fila"><div class="ex-txt"><div class="ex-en">${esc(x[0])}</div><div class="ex-esp">${esc(x[1])}</div></div>
       <button type="button" class="btn ghost chico" aria-label="Escuchar la frase" title="Escuchar" onclick="exDecir(${EXS.sit},${k})">🔊</button></div>`).join('') +
     `<div class="fb bad" id="ex-err" role="status"></div><div class="cf-btns"><button class="btn" onclick="exPracticar(${EXS.sit})">🎯 Practicar</button></div>`;
+}
+
+// ---------- modo coche: solo audio de una unidad (no guarda nada ni marca lecciones como hechas) ----------
+const CAR_ESPERA = 3000, CAR_LENTO = 0.7;
+let CAR = null;
+function carPistas(uid){      // lectura y diálogo de cada lección que tenga audio, en su orden
+  const u = U(uid), fs = new Set(descNivel(u.level).files);
+  const hay = (f, alt) => fs.size ? fs.has(f) : alt;
+  const t = [];
+  u.lessons.forEach(l => {
+    if (hay(`${uid}-lec${l.n}.mp3`, !!lectureText(uid, l.n))) t.push({src: `audio/${uid}-lec${l.n}.mp3`, title: `Lección ${l.n} · Escucha`});
+    if (hay(`${uid}-lec${l.n}-dialogo.mp3`, !!(DATA.dialogs || {})[uid + '-lec' + l.n])) t.push({src: `audio/${uid}-lec${l.n}-dialogo.mp3`, title: `Lección ${l.n} · Diálogo`});
+  });
+  return t;
+}
+function carNueva(uid){
+  carParar();
+  CAR = {uid, tracks: carPistas(uid), i: 0, sig: 0, playing: false, repeat: false, slow: false, espera: false, fin: false, msg: '', audio: null, timer: null, tok: 0};
+  if (CAR.tracks.length) carMediaIni();
+}
+function carQuitarAudio(C){
+  const a = C.audio; if (!a) return;
+  C.audio = null; a.onended = a.onerror = null;
+  try { a.pause(); } catch(e){}
+}
+function carParar(){          // al salir de la pantalla: se para todo
+  const C = CAR; CAR = null;
+  if (!C) return;
+  C.tok++; clearTimeout(C.timer); C.espera = false; carQuitarAudio(C);
+  carMediaFin();
+}
+// Media Session: botones y título en la pantalla de bloqueo (si el navegador no lo admite, se sigue sin ellos)
+function carHandler(nombre, fn){ try { navigator.mediaSession.setActionHandler(nombre, fn); } catch(e){} }
+function carMediaIni(){
+  if (!('mediaSession' in navigator)) return;
+  carHandler('play', () => { if (CAR && !CAR.playing) carAlternar(); });
+  carHandler('pause', () => { if (CAR && CAR.playing) carPausar(); });
+}
+function carMedia(){
+  const C = CAR; if (!C || !C.tracks.length || !('mediaSession' in navigator)) return;
+  try {
+    if (window.MediaMetadata) navigator.mediaSession.metadata = new MediaMetadata({title: C.tracks[C.i].title, artist: 'Mi inglés', album: 'Mi inglés',
+      artwork: [{src: 'icon-192.png', sizes: '192x192', type: 'image/png'}, {src: 'icon-512.png', sizes: '512x512', type: 'image/png'}]});
+    navigator.mediaSession.playbackState = C.playing ? 'playing' : 'paused';
+  } catch(e){}
+  carHandler('previoustrack', C.i > 0 ? () => carMover(-1) : null);
+  carHandler('nexttrack', C.i < C.tracks.length - 1 ? () => carMover(1) : null);
+}
+function carMediaFin(){
+  if (!('mediaSession' in navigator)) return;
+  ['play', 'pause', 'previoustrack', 'nexttrack'].forEach(n => carHandler(n, null));
+  try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; } catch(e){}
+}
+function carPintar(){ const c = document.getElementById('car-caja'); if (c && CAR) c.innerHTML = carCaja(); }
+function carCaja(){
+  const C = CAR;
+  if (!C.tracks.length) return '<p class="pcap">Esta unidad todavía no tiene audio.</p>';
+  const n = C.tracks.length;
+  const estado = C.fin ? 'Fin de la unidad. Pulsa Reproducir para empezar otra vez.'
+    : C.espera && !C.msg ? (C.sig === C.i ? 'Repitiendo en 3 segundos…' : 'Siguiente pista en 3 segundos…') : '';
+  return `<div class="car"><div class="car-pista">Pista ${C.i + 1} de ${n}</div>
+    <div class="car-tit">${esc(C.tracks[C.i].title)}</div>
+    <div class="car-estado" role="status" aria-live="polite">${C.msg ? `<span class="fb bad">${esc(C.msg)}</span>` : esc(estado)}</div>
+    <button type="button" class="btn car-play" onclick="carAlternar()">${C.playing ? '⏸ Pausar' : '▶ Reproducir'}</button>
+    <div class="car-fila"><button type="button" class="btn ghost" ${C.i === 0 ? 'disabled' : ''} onclick="carMover(-1)">⏮ Anterior</button>
+      <button type="button" class="btn ghost" ${C.i >= n - 1 ? 'disabled' : ''} onclick="carMover(1)">⏭ Siguiente</button></div>
+    <div class="car-fila"><button type="button" class="btn ghost ${C.repeat ? 'car-on' : ''}" aria-pressed="${C.repeat}" onclick="carRepetir()">🔁 Repetir esta${C.repeat ? ' ✓' : ''}</button>
+      <button type="button" class="btn ghost" onclick="carVelocidad()">Velocidad: ${C.slow ? 'Despacio' : 'Normal'}</button></div></div>`;
+}
+function carReproducir(reanudar){
+  const C = CAR; if (!C || !C.tracks.length) return;
+  clearTimeout(C.timer); C.espera = false; C.msg = ''; C.fin = false;
+  try { if (CUR_AUDIO) CUR_AUDIO.pause(); if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch(e){}
+  if (reanudar && C.audio) {          // estaba en pausa a mitad de la pista
+    const a = C.audio;
+    C.playing = true; carPintar(); carMedia();
+    a.play().catch(() => { if (CAR === C && C.audio === a) { C.playing = false; carPintar(); carMedia(); } });
+    return;
+  }
+  carQuitarAudio(C);
+  const t = C.tracks[C.i], tok = ++C.tok, a = new Audio(t.src);
+  C.audio = a;
+  a.defaultPlaybackRate = a.playbackRate = C.slow ? CAR_LENTO : 1;
+  const vigente = () => CAR === C && C.tok === tok;
+  let fallado = false;
+  const fallo = () => {
+    if (!vigente() || fallado) return; fallado = true;
+    audioFalla(t.src, () => carSaltar(C, tok, 'No se pudo reproducir esta pista.'), () => carSaltar(C, tok, 'Necesitas conexión para esta pista'));
+  };
+  a.onerror = fallo;
+  a.onended = () => { if (vigente()) carTermino(C); };
+  C.playing = true; carPintar(); carMedia();
+  a.play().catch(err => {
+    if (!vigente() || (err && err.name === 'AbortError')) return;
+    if (err && err.name === 'NotAllowedError') { C.playing = false; C.msg = 'Pulsa Reproducir para seguir.'; carPintar(); carMedia(); return; }
+    fallo();
+  });
+}
+function carEsperar(C, sig, ms, msg){          // espera y pasa a la pista «sig» (la misma, si se repite)
+  clearTimeout(C.timer);
+  C.sig = sig; C.espera = true; C.msg = msg; C.playing = true; carPintar(); carMedia();
+  C.timer = setTimeout(() => { if (CAR !== C || !C.espera) return; C.i = C.sig; carReproducir(); }, ms);
+}
+function carFinal(C){ C.playing = false; C.fin = true; C.espera = false; C.i = 0; C.msg = ''; carPintar(); carMedia(); }
+function carTermino(C){
+  carQuitarAudio(C);
+  const sig = C.repeat ? C.i : C.i + 1;
+  if (sig >= C.tracks.length) carFinal(C); else carEsperar(C, sig, CAR_ESPERA, '');
+}
+function carSaltar(C, tok, msg){               // la pista no suena (sin conexión o fallo): se avisa y se pasa a la siguiente
+  if (CAR !== C || C.tok !== tok) return;
+  carQuitarAudio(C);
+  if (C.i + 1 >= C.tracks.length) { carFinal(C); C.msg = msg; carPintar(); return; }
+  carEsperar(C, C.i + 1, 2500, msg);
+}
+function carPausar(){
+  const C = CAR; if (!C) return;
+  if (C.espera) { clearTimeout(C.timer); C.espera = false; C.i = C.sig; C.msg = ''; }
+  else if (C.audio) { try { C.audio.pause(); } catch(e){} }
+  C.playing = false; carPintar(); carMedia();
+}
+function carAlternar(){
+  const C = CAR; if (!C || !C.tracks.length) return;
+  if (C.playing) carPausar(); else carReproducir(true);
+}
+function carMover(d){
+  const C = CAR; if (!C) return;
+  const j = C.i + d; if (j < 0 || j >= C.tracks.length) return;
+  const seguia = C.playing;
+  clearTimeout(C.timer); C.espera = false; C.tok++; carQuitarAudio(C);
+  C.i = j; C.msg = ''; C.fin = false;
+  if (seguia) carReproducir(); else { C.playing = false; carPintar(); carMedia(); }
+}
+function carRepetir(){ if (!CAR) return; CAR.repeat = !CAR.repeat; carPintar(); }
+function carVelocidad(){
+  if (!CAR) return;
+  CAR.slow = !CAR.slow;
+  if (CAR.audio) { CAR.audio.defaultPlaybackRate = CAR.audio.playbackRate = CAR.slow ? CAR_LENTO : 1; }
+  carPintar();
+}
+function viewCoche(){
+  const u = U(CAR.uid);
+  return `<div class="crumb" onclick="go('#/unit/${CAR.uid}')">← Unidad ${u.num}: ${esc(u.title)}</div><h2>🚗 Modo coche</h2>
+    <div class="card" id="car-caja">${carCaja()}</div>`;
 }
 
 // ---------- panel de códigos de invitación (solo administrador) ----------
@@ -2643,7 +2807,8 @@ function viewUnit(uid){
       ${u.lessons.filter(l => l.n >= 5 && l.n <= 7).map(l => fila(l, !p2)).join('')}${exRow}</div>
     <div class="card parte"><h3>Ejercicios extra</h3><p class="pcap">Para practicar: no cambian tu progreso.</p>
       <button class="btn ghost" onclick="cfNueva('${uid}');go('#/frases/${uid}')">🧱 Construir frases</button>
-      <button class="btn ghost" onclick="ahNueva('${uid}');go('#/ahorcado/${uid}')">🪢 Ahorcado</button></div>`;
+      <button class="btn ghost" onclick="ahNueva('${uid}');go('#/ahorcado/${uid}')">🪢 Ahorcado</button>
+      <button class="btn ghost" onclick="go('#/coche/${uid}')">🚗 Modo coche</button></div>`;
   const next = UNITS[idx + 1];
   const prog = unitProgress(uid);
   return `<div class="crumb" onclick="go('#/level/${u.level}')">← ${u.level}</div>
@@ -2845,6 +3010,7 @@ function viewSugerencia(){
 
 // ---------- enrutado ----------
 function render(){
+  if (CAR && !location.hash.startsWith('#/coche/')) carParar();      // al salir del modo coche, la reproducción se para
   if (!HAY_SESION) { pintarEntrada(); return; }          // sin sesión no se muestra nada más que la entrada
   document.body.classList.remove('sin-sesion');
   logrosInicio();
@@ -2855,6 +3021,7 @@ function render(){
   else if (h[0] === 'frases') { if (!U(h[1])) html = viewHome(); else { if (!CF || CF.uid !== h[1]) cfNueva(h[1]); html = '<div class="leccion">' + viewFrases() + '</div>'; } }
   else if (h[0] === 'ahorcado') { if (!U(h[1])) html = viewHome(); else { if (!AH || AH.uid !== h[1]) ahNueva(h[1]); html = '<div class="leccion">' + viewAhorcado() + '</div>'; } }
   else if (h[0] === 'expresiones') { if (!EXS) exInicio(); html = '<div class="leccion">' + viewExpresiones() + '</div>'; }
+  else if (h[0] === 'coche') { if (!U(h[1])) html = viewHome(); else { if (!CAR || CAR.uid !== h[1]) carNueva(h[1]); html = '<div class="leccion">' + viewCoche() + '</div>'; } }
   else if (h[0] === 'falsos') { if (!FA) faNueva(); html = '<div class="leccion">' + viewFalsos() + '</div>'; }
   else if (h[0] === 'codigos') html = esAdmin() ? '<div class="leccion">' + viewCodigos() + '</div>' : viewHome();      // solo existe para el administrador
   else if (h[0] === 'emparejar') html = '<div class="leccion">' + viewEmparejar(h[1]) + '</div>';
