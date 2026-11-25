@@ -163,6 +163,12 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .pd-ej{margin:6px 0;overflow-wrap:anywhere}
 .pd-q{margin:10px 0 6px;font-weight:600}
 .grow.glos-dia{background:var(--gold);border-radius:12px;box-shadow:0 0 0 2px var(--a)}
+.ex-fila{display:flex;align-items:center;gap:10px}
+.ex-txt{flex:1;min-width:0;overflow-wrap:anywhere}
+.ex-en{font-size:20px;font-weight:700;line-height:1.3}
+.ex-esp{color:var(--muted,inherit);opacity:.85;margin-top:2px}
+.ex-es{font-size:19px;font-weight:600;overflow-wrap:anywhere;margin:4px 0 10px}
+.opts .opt{overflow-wrap:anywhere}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -309,7 +315,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '36';   // igual que la caché mi-ingles-v36 en sw.js
+const APP_VERSION = '37';   // igual que la caché mi-ingles-v37 en sw.js
 const Q = {};
 let EX = null;
 
@@ -705,7 +711,7 @@ function answer(id, val){
   }
   if (q.kind === 'des') { desResponder(right, fb); return; }   // desafío de 60 segundos: no toca el progreso
   if (q.kind === 'exam') {
-    if (EX.est) estRegistrar(right); else if (right) EX.score++;
+    if (EXS.est) estRegistrar(right); else if (right) EXS.score++;
     fb.className = 'fb ' + (right ? 'ok' : 'bad');
     fb.textContent = right ? '¡Correcto! ✅' : 'La respuesta correcta es: ' + q.answer;
     box.querySelector('.nextbtn').classList.remove('hide');
@@ -1525,6 +1531,75 @@ function viewFalsos(){
   return `${cab}<div class="card" id="fa-caja">${faCaja()}</div>`;
 }
 
+// ---------- expresiones por situación (solo práctica: no guarda nada) ----------
+const EXPRESIONES = [
+  {id: 'comida', t: '🍽️ Pedir comida', f: [
+    ['Can I have a coffee, please?', '¿Me pone un café, por favor?'],
+    ["I'd like the soup, please.", 'Quisiera la sopa, por favor.'],
+    ['Could we have the bill, please?', '¿Nos trae la cuenta, por favor?'],
+    ['Does it have meat?', '¿Tiene carne?'],
+    ['Can I see the menu, please?', '¿Puedo ver la carta, por favor?']]},
+  {id: 'telefono', t: '📞 Llamar por teléfono', f: [
+    ['Hello, this is Ana speaking.', 'Hola, soy Ana.'],
+    ['Can I speak to Tom, please?', '¿Puedo hablar con Tom, por favor?'],
+    ['Could you speak more slowly?', '¿Podría hablar más despacio?'],
+    ['Can you call me back later?', '¿Puede llamarme más tarde?'],
+    ['Sorry, I have the wrong number.', 'Perdón, me he equivocado de número.']]},
+  {id: 'perdon', t: '🙏 Pedir perdón', f: [
+    ["I'm sorry I'm late.", 'Siento llegar tarde.'],
+    ["I'm really sorry about that.", 'Lo siento de verdad.'],
+    ["Sorry, I didn't mean to do that.", 'Perdón, no quería hacerlo.'],
+    ['Excuse me, can you help me?', 'Perdona, ¿me ayudas?'],
+    ["It won't happen again.", 'No volverá a pasar.']]}];
+const EX_N = 5;
+let EXS = null;
+function exInicio(){ EXS = {sit: null, prac: null}; }
+function exAbrir(i){ EXS = {sit: i, prac: null}; render(); }
+function exPracticar(i){
+  const f = EXPRESIONES[i].f;
+  EXS = {sit: i, prac: {pregs: shuffle(f.map((x, k) => k)).slice(0, EX_N).map(k => ({
+    k, ops: shuffle([k].concat(shuffle(f.map((x, j) => j).filter(j => j !== k)).slice(0, 2)))})), i: 0, ac: 0, resp: null, fin: false}};
+  render();
+}
+function exDecir(i, k){
+  const e = document.getElementById('ex-err'); if (e) e.textContent = '';
+  if (!vozDisponible()) { if (e) e.textContent = 'Tu navegador no puede leer en voz alta.'; return; }
+  try { tts(EXPRESIONES[i].f[k][0]); } catch(err){}
+}
+function exCajaPrac(){
+  const sit = EXPRESIONES[EXS.sit], P = EXS.prac, q = P.pregs[P.i], r = P.resp;
+  const ops = q.ops.map((j, n) => `<button type="button" class="opt ${r === null ? '' : j === q.k ? 'right' : (r === n ? 'wrong' : '')}" ${r === null ? '' : 'disabled'} onclick="exResponder(${n})">${esc(sit.f[j][0])}</button>`).join('');
+  const bien = r !== null && q.ops[r] === q.k;
+  return `<div class="pcap">Frase ${P.i + 1} de ${P.pregs.length}</div>
+    <p class="pd-q">¿Cómo se dice en inglés?</p><p class="ex-es">${esc(sit.f[q.k][1])}</p><div class="opts">${ops}</div>
+    ${r === null ? '' : bien ? '<p class="fb ok" role="status">¡Bien!</p>' : `<p class="fb ok" role="status">Era: ${esc(sit.f[q.k][0])}</p>`}
+    <div class="cf-btns"><button class="btn" ${r === null ? 'disabled' : ''} onclick="exSiguiente()">Siguiente</button></div>`;
+}
+function exResponder(n){
+  const P = EXS && EXS.prac; if (!P || P.fin || P.resp !== null) return;
+  P.resp = n; if (P.pregs[P.i].ops[n] === P.pregs[P.i].k) P.ac++;
+  const c = document.getElementById('ex-caja'); if (c) c.innerHTML = exCajaPrac();
+}
+function exSiguiente(){
+  const P = EXS && EXS.prac; if (!P || P.resp === null) return;
+  P.i++; P.resp = null;
+  if (P.i >= P.pregs.length) { P.fin = true; render(); return; }
+  const c = document.getElementById('ex-caja'); if (c) c.innerHTML = exCajaPrac();
+}
+function viewExpresiones(){
+  if (EXS.sit === null) return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🗣️ Expresiones</h2><p class="pcap">Frases útiles para situaciones de cada día.</p>` +
+    EXPRESIONES.map((s, i) => `<div class="card"><h3>${s.t}</h3><p class="pcap">${s.f.length} frases</p>
+      <button class="btn" onclick="exAbrir(${i})">Ver frases</button> <button class="btn ghost" onclick="exPracticar(${i})">🎯 Practicar</button></div>`).join('');
+  const s = EXPRESIONES[EXS.sit], P = EXS.prac;
+  const cab = `<div class="crumb" onclick="exInicio();render()">← Expresiones</div><h2>${s.t}</h2>`;
+  if (P && P.fin) return `${cab}<div class="card center"><div class="big">${P.ac} de ${P.pregs.length}</div><h3>Has acertado ${P.ac} de ${P.pregs.length}</h3>
+      <button class="btn" onclick="exPracticar(${EXS.sit})">🔁 Empezar de nuevo</button><button class="btn ghost" onclick="exAbrir(${EXS.sit})">Ver las frases</button></div>`;
+  if (P) return `${cab}<div class="card" id="ex-caja">${exCajaPrac()}</div>`;
+  return `${cab}<p class="pcap">${s.f.length} frases</p>` + s.f.map((x, k) => `<div class="card ex-fila"><div class="ex-txt"><div class="ex-en">${esc(x[0])}</div><div class="ex-esp">${esc(x[1])}</div></div>
+      <button type="button" class="btn ghost chico" aria-label="Escuchar la frase" title="Escuchar" onclick="exDecir(${EXS.sit},${k})">🔊</button></div>`).join('') +
+    `<div class="fb bad" id="ex-err" role="status"></div><div class="cf-btns"><button class="btn" onclick="exPracticar(${EXS.sit})">🎯 Practicar</button></div>`;
+}
+
 // ---------- panel de códigos de invitación (solo administrador) ----------
 // El botón solo se muestra con el correo del administrador; lo que de verdad protege la tabla son las reglas del servidor (RLS), no esto.
 const ADMIN_MAIL = 'gutierezronaldo2@gmail.com';
@@ -2310,7 +2385,7 @@ function entrarConUsuario(u){
 function olvidarMemoria(){      // al salir: nada del usuario que sale queda en la memoria de la app (su copia local sigue guardada, separada)
   UID_ACTUAL = '';
   S = {passed: {}, done: {}, streak: {last: '', count: 0}};
-  DIF = []; ERR = []; SILENCIO = false; ERR_CONFIRMAR = false; EX = null; REP = null; COPIA = {pend: null, msg: null};
+  DIF = []; ERR = []; SILENCIO = false; ERR_CONFIRMAR = false; EXS = null; REP = null; COPIA = {pend: null, msg: null};
   for (const k of Object.keys(Q)) delete Q[k];
   try { if (CUR_AUDIO) CUR_AUDIO.pause(); } catch(e){}
   try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch(e){}
@@ -2457,7 +2532,7 @@ function viewHome(){
   }).join('');
   const bl = badges().map(b => `<span class="badge ${b.on ? 'on' : ''}">${b.on ? '🏅' : '🔒'} ${esc(b.name)}</span>`).join('');
   const N = S.nivel;
-  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="faNueva();go('#/falsos')">🪤 Falsos amigos</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button>`
+  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="faNueva();go('#/falsos')">🪤 Falsos amigos</button> <button class="btn ghost" onclick="exInicio();go('#/expresiones')">🗣️ Expresiones</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button>`
     + (N ? ` <span class="pcap" style="cursor:pointer" onclick="go('#/sugerencia')">Último resultado: ${N.level}, unidad ${N.num} (ver)</span>` : '');
   const nDif = difOrdenadas().length;
   const difBtn = nDif ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/dificiles')">⭐ Palabras difíciles (${nDif})</button></div>` : '';
@@ -2645,33 +2720,33 @@ function celebrar(){
 
 // ---------- examen ----------
 function startExam(uid){
-  EX = {uid, i: 0, score: 0, items: U(uid).exam};
+  EXS = {uid, i: 0, score: 0, items: U(uid).exam};
   touch();
 }
 function nextQ(){
-  if (EX.est) { estAvanzar(); return; }
-  EX.i++;
+  if (EXS.est) { estAvanzar(); return; }
+  EXS.i++;
   render();
 }
 function viewExam(){
-  const u = U(EX.uid);
-  if (EX.i >= EX.items.length) {
-    const pass = EX.score >= 7;
+  const u = U(EXS.uid);
+  if (EXS.i >= EXS.items.length) {
+    const pass = EXS.score >= 7;
     if (pass) { if (!S.passed[u.id]) fechaExamen(u.id); S.passed[u.id] = true; save(); }
-    if (pass && !EX.est && EX.score === EX.items.length) otorgarLogro('ni-un-fallo');
-    if (pass && !EX.celebrado) { EX.celebrado = true; setTimeout(celebrar, 0); }   // solo si aprueba; una vez por examen
+    if (pass && !EXS.est && EXS.score === EXS.items.length) otorgarLogro('ni-un-fallo');
+    if (pass && !EXS.celebrado) { EXS.celebrado = true; setTimeout(celebrar, 0); }   // solo si aprueba; una vez por examen
     const idx = UNITS.indexOf(u), next = UNITS[idx + 1];
     return `<div class="card center">
-      <div class="big">${EX.score} / ${EX.items.length}</div>
+      <div class="big">${EXS.score} / ${EXS.items.length}</div>
       ${pass ? '<h2>🎉 ¡Unidad aprobada!</h2><p>Muy bien. Ya puedes seguir.</p>'
              : '<h2>Casi. Necesitas 7 para pasar.</h2><p>Repasa las lecciones y vuelve a intentarlo. Sin prisas.</p>'}
       ${pass ? (next && next.level === u.level ? `<button class="btn" onclick="go('#/unit/${next.id}')">Siguiente unidad →</button>` : '') : `<button class="btn" onclick="startExam('${u.id}');render()">Repetir examen</button>`}
       <button class="btn ghost" onclick="go('#/unit/${u.id}')">Volver a la unidad</button>
     </div>`;
   }
-  const q = EX.items[EX.i];
+  const q = EXS.items[EXS.i];
   return `<div class="crumb" onclick="go('#/unit/${u.id}')">← Unidad ${u.num}: ${esc(u.title)}</div>
-    <div class="card"><h2>Examen · pregunta ${EX.i + 1} de ${EX.items.length}</h2>
+    <div class="card"><h2>Examen · pregunta ${EXS.i + 1} de ${EXS.items.length}</h2>
     ${quiz(q, 'exam', null, {uid: u.id, n: 0})}</div>`;
 }
 
@@ -2694,20 +2769,20 @@ function startEst(){
     return qs;
   });
   const res = {}; DATA.levels.forEach(l => res[l.code] = {ok: 0, bad: 0});
-  EX = {est: true, uid: '__est', i: 0, score: 0, items: [], pool, li: 0, qi: 0, res};
+  EXS = {est: true, uid: '__est', i: 0, score: 0, items: [], pool, li: 0, qi: 0, res};
   touch();
 }
 function estRegistrar(right){
-  const r = EX.res[DATA.levels[EX.li].code];
+  const r = EXS.res[DATA.levels[EXS.li].code];
   if (right) r.ok++; else r.bad++;
 }
 function estAvanzar(){
-  const code = DATA.levels[EX.li].code;
-  if (EX.res[code].bad >= EST_FALLOS_MAX) { estTerminar(code); return; }   // falla 2 o más: se detiene en este nivel
-  EX.qi++;
-  if (EX.qi >= EST_PREGUNTAS) {                                            // 5 hechas con como mucho 1 fallo (4 de 5): sube de nivel
-    if (EX.li + 1 >= DATA.levels.length) { estTerminar(null); return; }
-    EX.li++; EX.qi = 0;
+  const code = DATA.levels[EXS.li].code;
+  if (EXS.res[code].bad >= EST_FALLOS_MAX) { estTerminar(code); return; }   // falla 2 o más: se detiene en este nivel
+  EXS.qi++;
+  if (EXS.qi >= EST_PREGUNTAS) {                                            // 5 hechas con como mucho 1 fallo (4 de 5): sube de nivel
+    if (EXS.li + 1 >= DATA.levels.length) { estTerminar(null); return; }
+    EXS.li++; EXS.qi = 0;
   }
   render();
 }
@@ -2717,16 +2792,16 @@ function estSugerencia(stop){
     return UNITS.find(u => u.level === last);
   }
   const delNivel = UNITS.filter(u => u.level === stop);
-  const num = Math.min(1 + 2 * EX.res[stop].ok, delNivel.length);   // cuantos más aciertos, más adelante empieza
+  const num = Math.min(1 + 2 * EXS.res[stop].ok, delNivel.length);   // cuantos más aciertos, más adelante empieza
   return delNivel.find(u => u.num === num) || delNivel[0];
 }
 function estTerminar(stop){
   const u = estSugerencia(stop);
   const scores = {};
-  DATA.levels.forEach(l => { const r = EX.res[l.code]; if (r.ok + r.bad > 0) scores[l.code] = {ok: r.ok, bad: r.bad}; });
+  DATA.levels.forEach(l => { const r = EXS.res[l.code]; if (r.ok + r.bad > 0) scores[l.code] = {ok: r.ok, bad: r.bad}; });
   S.nivel = {level: u.level, unit: u.id, num: u.num, detenido: stop, scores, date: new Date().toISOString(), aplicado: false};
   save();                                                  // se guarda dentro del mismo progreso, sin borrar nada
-  EX = null;
+  EXS = null;
   go('#/sugerencia');
 }
 function estAplicar(){
@@ -2738,10 +2813,10 @@ function estAplicar(){
 }
 function estDesdeInicio(){ go('#/unit/' + UNITS[0].id); }                       // solo navega: no cambia ningún dato
 function viewEst(){
-  const lv = DATA.levels[EX.li], q = EX.pool[EX.li][EX.qi];
-  const hechas = EX.li * EST_PREGUNTAS + EX.qi;
+  const lv = DATA.levels[EXS.li], q = EXS.pool[EXS.li][EXS.qi];
+  const hechas = EXS.li * EST_PREGUNTAS + EXS.qi;
   return `<div class="crumb" onclick="go('#/')">← Menú</div>
-    <div class="card"><h2>¿Por dónde empiezo? · Nivel ${lv.code} · pregunta ${EX.qi + 1} de ${EST_PREGUNTAS}</h2>
+    <div class="card"><h2>¿Por dónde empiezo? · Nivel ${lv.code} · pregunta ${EXS.qi + 1} de ${EST_PREGUNTAS}</h2>
     <div class="bar"><div style="width:${Math.round(100 * hechas / (DATA.levels.length * EST_PREGUNTAS))}%"></div></div>
     ${quiz(q, 'exam', null)}</div>`;
 }
@@ -2779,6 +2854,7 @@ function render(){
   if (h[0] === 'level') html = viewLevel(h[1]);
   else if (h[0] === 'frases') { if (!U(h[1])) html = viewHome(); else { if (!CF || CF.uid !== h[1]) cfNueva(h[1]); html = '<div class="leccion">' + viewFrases() + '</div>'; } }
   else if (h[0] === 'ahorcado') { if (!U(h[1])) html = viewHome(); else { if (!AH || AH.uid !== h[1]) ahNueva(h[1]); html = '<div class="leccion">' + viewAhorcado() + '</div>'; } }
+  else if (h[0] === 'expresiones') { if (!EXS) exInicio(); html = '<div class="leccion">' + viewExpresiones() + '</div>'; }
   else if (h[0] === 'falsos') { if (!FA) faNueva(); html = '<div class="leccion">' + viewFalsos() + '</div>'; }
   else if (h[0] === 'codigos') html = esAdmin() ? '<div class="leccion">' + viewCodigos() + '</div>' : viewHome();      // solo existe para el administrador
   else if (h[0] === 'emparejar') html = '<div class="leccion">' + viewEmparejar(h[1]) + '</div>';
@@ -2790,14 +2866,14 @@ function render(){
   else if (h[0] === 'mapa') html = h[1] ? viewMapa(h[1]) : viewMapaNiveles();
   else if (h[0] === 'unit') html = viewUnit(h[1]);
   else if (h[0] === 'lesson') html = '<div class="leccion">' + viewLesson(h[1], +h[2]) + '</div>';
-  else if (h[0] === 'empezar') { if (!EX || !EX.est) startEst(); html = viewEst(); }
+  else if (h[0] === 'empezar') { if (!EXS || !EXS.est) startEst(); html = viewEst(); }
   else if (h[0] === 'sugerencia') html = viewSugerencia();
   else if (h[0] === 'copia') { COPIA = {pend: null, msg: null}; html = '<div class="leccion">' + viewCopia() + '</div>'; }
   else if (h[0] === 'errores') { ERR_CONFIRMAR = false; html = '<div class="leccion">' + viewErrores() + '</div>'; }
   else if (h[0] === 'repaso') { if (!REP) empezarRepaso(); html = '<div class="leccion">' + viewRepaso() + '</div>'; }
   else if (h[0] === 'instalar') html = '<div class="leccion">' + viewInstalar() + '</div>';
   else if (h[0] === 'dificiles') html = '<div class="leccion">' + viewDificiles() + '</div>';
-  else if (h[0] === 'exam') { if (!EX || EX.uid !== h[1]) startExam(h[1]); html = '<div class="examen">' + viewExam() + '</div>'; }
+  else if (h[0] === 'exam') { if (!EXS || EXS.uid !== h[1]) startExam(h[1]); html = '<div class="examen">' + viewExam() + '</div>'; }
   else html = viewHome();
   app.innerHTML = html;
   stats();
@@ -2806,7 +2882,7 @@ function render(){
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/desafio')) desCancelar(); });   // salir a mitad: se cancela y no se guarda nada
-window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/exam') && !location.hash.startsWith('#/empezar')) EX = null; if (!location.hash.startsWith('#/repaso')) REP = null; render(); });
+window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/exam') && !location.hash.startsWith('#/empezar')) EXS = null; if (!location.hash.startsWith('#/repaso')) REP = null; render(); });
 render();
 
 // Modo app: permite instalarla y usarla sin conexión
