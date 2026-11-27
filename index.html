@@ -176,7 +176,32 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .car .car-play{min-height:88px;font-size:26px;border-radius:18px;margin-bottom:12px}
 .car-fila{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .car .btn.car-on{background:var(--a);color:#fff}
+.nota{margin-top:14px}
+.nota-txt{display:block;width:100%;box-sizing:border-box;min-height:120px;margin-top:8px;padding:12px;font:inherit;font-size:16px;line-height:1.4;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;resize:vertical;overflow-wrap:anywhere}
+.nota-est{min-height:1.4em;margin-top:4px;color:var(--muted);font-size:14px}
+.nota-ent h3{margin:0 0 4px}
+.nota-prev{margin:0 0 8px;color:var(--muted);overflow-wrap:anywhere}
+.nota-ir{font-weight:700;color:var(--a)}
+.tj{text-align:center}
+.tj-w{font-size:40px;font-weight:800;line-height:1.15;margin:14px 0;overflow-wrap:anywhere}
+.tj-t{font-size:24px;font-weight:700;margin:12px 0 4px;overflow-wrap:anywhere}
+.tj-ej{color:var(--muted);margin:0 0 8px;overflow-wrap:anywhere}
+.tj .btn{display:block;width:100%;margin:0;min-height:56px;font-size:18px;font-weight:700;padding:10px 8px}
+.tj-fila{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.tj-resp .btn{min-height:72px;font-size:20px}
 .opts .opt{overflow-wrap:anywhere}
+/* simulacro */
+.sim-top{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line)}
+.sim-t{font-size:40px;font-weight:800;text-align:center;line-height:1.1;font-variant-numeric:tabular-nums}
+.sim-t.poco{color:var(--badink)}
+.sim-nums{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.sim-n{min-width:34px;height:34px;padding:0 4px;border-radius:10px;border:2px solid var(--line);background:var(--soft2);color:var(--muted);font-size:14px;cursor:pointer}
+.sim-n.hecha{background:var(--okbg2);color:var(--okink)}
+.sim-n.act{border-color:var(--a);font-weight:800}
+.opt.sel{border-color:var(--a);background:var(--soft)}
+.sim-nav{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+.sim-nav .btn{flex:1 1 120px;margin:0}
+.sim-fallo{padding:10px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
 .parte{padding:12px 14px}
 .parte.cerrada{opacity:.75}
 .parte-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -267,6 +292,15 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .dorigen{display:block;background:none;border:0;padding:0;margin-top:2px;font:inherit;font-size:14px;color:var(--a);text-align:left;cursor:pointer;text-decoration:underline}
 /* texto más grande para leer cómodo en el móvil: solo lecciones y exámenes */
 .leccion,.examen{font-size:18px}
+/* ajustes: tamaño de letra (--fs lo pone aplicarAjustes) y bloques del modo sepia */
+.leccion{zoom:var(--fs,1)}
+.ajustes .sec{margin-bottom:14px}
+.ajuste-op{display:block;width:100%;min-height:52px;margin:6px 0;padding:10px 14px;border-radius:12px;border:3px solid var(--line);background:var(--card);color:var(--ink);font-size:17px;font-weight:600;cursor:pointer;text-align:left}
+.ajuste-op.on{border-color:var(--a);background:var(--soft);font-weight:800}
+.ajuste-op.on::before{content:'✓ '}
+html.sepia .sec-lectura,html.sepia .rep.dlg{background:#f4ecd8;color:#4b3f2f;border-color:#b8a57f;border-radius:14px;padding:12px 14px}
+html.sepia .sec-lectura h3,html.sepia .sec-lectura p,html.sepia .sec-lectura li,html.sepia .sec-lectura b,html.sepia .sec-lectura i,
+html.sepia .rep.dlg .rep-title,html.sepia .rep.dlg p,html.sepia .rep.dlg b{color:#4b3f2f}
 .leccion h2,.examen h2{font-size:24px}
 .leccion h3{font-size:19px}
 .leccion .sec p{line-height:1.75}
@@ -276,6 +310,49 @@ h3{margin:14px 0 6px;color:var(--a);font-size:16px}
 .leccion .fb,.examen .fb{font-size:17px}
 @media (max-width:480px){.leccion h2,.examen h2{font-size:22px}}
 @media (max-width:480px){.stem{font-size:16px}h2{font-size:20px}}
+/* ---------- mi perfil ---------- */
+.perf-inicio{display:flex;align-items:center;gap:12px;width:100%;min-width:0;border:0;background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;margin:4px 0 10px;cursor:pointer;text-align:left;font:inherit;box-shadow:0 2px 8px var(--shadow)}
+.perf-inicio-av{flex:none;font-size:36px;line-height:1}
+.perf-inicio-txt{flex:1 1 auto;min-width:0;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.perf-aviso{margin:0 0 12px}
+.perf-avs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.perf-av{flex:none;min-width:48px;min-height:48px;width:56px;height:56px;font-size:30px;line-height:1;padding:0;border:3px solid transparent;border-radius:14px;background:var(--soft);cursor:pointer}
+.perf-obj{flex:1 1 140px;min-height:56px;min-width:48px;padding:10px 14px;font:inherit;font-size:17px;font-weight:700;color:var(--ink);border:3px solid transparent;border-radius:14px;background:var(--soft);cursor:pointer}
+.perf-av.on,.perf-obj.on{border-color:var(--a);background:var(--card);box-shadow:0 0 0 2px var(--a) inset}
+.perf-lab{display:block;font-weight:700;margin:14px 0 6px}
+.perf-nombre{display:block;width:100%;max-width:100%;box-sizing:border-box;min-height:52px;padding:12px;font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px}
+.perf-guardar{min-height:52px;min-width:48px;font-size:18px;font-weight:700;padding:12px 28px;margin:0}
+.perf-msg{display:inline-block;margin-left:10px;color:var(--okink);font-weight:700}
+/* ---------- estadísticas ---------- */
+.pnl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.pnl-num{min-width:0;background:var(--card);color:var(--ink);border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 2px 8px var(--shadow);overflow-wrap:anywhere}
+.pnl-num b{display:block;font-size:36px;line-height:1.15}
+.pnl-num b.largo{font-size:28px;line-height:1.5}
+.pnl-num b.muylargo{font-size:22px;line-height:1.9}
+.pnl-num span{display:block;font-size:14px;color:var(--muted)}
+.pnl-fila{margin:12px 0}
+.pnl-lab{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.pnl-lab b{flex:none}
+.pnl-fila .bar{height:14px;margin-top:6px;box-shadow:inset 0 0 0 1px var(--line)}
+.pnl-fila .bar div{background:var(--a)}   /* el mismo color que la barra de progreso de la pantalla de cada unidad */
+.pnl-exa{margin:8px 0}
+/* ---------- bienvenida (primera vez): capa por encima de todo ---------- */
+.bienv{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);box-sizing:border-box;padding:calc(8px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.bienv *{box-sizing:border-box}
+.bienv-top{flex:none;display:flex;justify-content:flex-end}
+.bienv-saltar{min-width:48px;min-height:48px;padding:10px 12px;border:0;background:none;color:var(--ink);font:inherit;font-size:17px;font-weight:700;text-decoration:underline;cursor:pointer}
+.bienv-centro{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;display:flex;flex-direction:column}
+.bienv-paso{margin:auto;width:100%;max-width:420px;text-align:center;overflow-wrap:break-word;animation:bienv-entra .25s ease-out}
+.bienv-emoji{font-size:96px;line-height:1.2}
+.bienv-paso h2{font-size:26px;line-height:1.25;margin:16px 0 10px}
+.bienv-paso p{font-size:18px;line-height:1.55;margin:0}
+.bienv-pie{flex:none;width:100%;max-width:420px;margin:0 auto}
+.bienv-puntos{display:flex;justify-content:center;gap:10px;margin:12px 0 16px}
+.bienv-puntos span{width:12px;height:12px;border-radius:50%;border:2px solid var(--a)}
+.bienv-puntos span.on{background:var(--a)}
+.bienv .bienv-sig{display:block;width:100%;min-height:56px;margin:0;font-size:19px;font-weight:700}
+@keyframes bienv-entra{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.bienv-paso{animation:none}}
 </style>
 </head>
 <body>
@@ -323,7 +400,7 @@ function leerSesionLocal(){
 })();
 
 const KEY = 'mi-ingles-v1';
-const APP_VERSION = '38';   // igual que la caché mi-ingles-v38 en sw.js
+const APP_VERSION = '39';   // igual que la caché mi-ingles-v39 en sw.js
 const Q = {};
 let EX = null;
 
@@ -348,6 +425,96 @@ function toggleTheme(){
   save(); applyTheme();
 }
 applyTheme();
+// ---------- ajustes (solo en este móvil, no van a la nube) ----------
+const AJ_KEY = 'mi-ingles-ajustes';
+const AJ_DEF = {vel: 0.8, letra: 'normal', sepia: false};
+const LETRA_FS = {normal: 1, grande: 1.15, muy: 1.3};
+function leerAjustes(){
+  const a = Object.assign({}, AJ_DEF);
+  try {
+    const d = JSON.parse(localStorage.getItem(AJ_KEY) || 'null');
+    if (d && typeof d === 'object') {                       // valida cada campo; lo raro se queda en lo por defecto
+      if ([0.7, 0.8, 1].indexOf(d.vel) >= 0) a.vel = d.vel;
+      if (Object.prototype.hasOwnProperty.call(LETRA_FS, d.letra)) a.letra = d.letra;
+      if (typeof d.sepia === 'boolean') a.sepia = d.sepia;
+    }
+  } catch(e){}
+  return a;
+}
+let AJ = leerAjustes();
+function guardarAjustes(){ try { localStorage.setItem(AJ_KEY, JSON.stringify(AJ)); } catch(e){} }
+function velAudio(){ return AJ.vel; }                       // velocidad de todos los audios
+function aplicarAjustes(){                                  // tamaño de letra y sepia, al momento
+  try {
+    document.documentElement.style.setProperty('--fs', String(LETRA_FS[AJ.letra] || 1));
+    document.documentElement.classList.toggle('sepia', !!AJ.sepia);
+  } catch(e){}
+}
+aplicarAjustes();
+function cambiarAjuste(k, v){
+  if (k === 'vel') AJ.vel = parseFloat(v);
+  else if (k === 'letra') AJ.letra = v;
+  else if (k === 'sepia') AJ.sepia = v === 'true';
+  guardarAjustes(); aplicarAjustes(); render();
+}
+function viewAjustes(){
+  const op = (k, v, txt) => { const on = String(AJ[k]) === v; return `<button class="ajuste-op${on ? ' on' : ''}" aria-pressed="${on}" onclick="cambiarAjuste('${k}','${v}')">${txt}</button>`; };
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>⚙️ Ajustes</h2>
+    <div class="ajustes">
+      <div class="sec"><h3>Velocidad del audio</h3>
+        ${op('vel', '0.7', 'Despacio (0,7)')}${op('vel', '0.8', 'Normal (0,8)')}${op('vel', '1', 'Rápida (1)')}</div>
+      <div class="sec"><h3>Tamaño de letra</h3>
+        ${op('letra', 'normal', 'Normal')}${op('letra', 'grande', 'Grande')}${op('letra', 'muy', 'Muy grande')}</div>
+      <div class="sec"><h3>Modo lectura sepia</h3>
+        ${op('sepia', 'false', 'Desactivado')}${op('sepia', 'true', 'Activado')}</div>
+      <p class="pcap">Los ajustes se guardan en este móvil. Tu progreso sigue en tu cuenta.</p>
+      <button type="button" class="ajuste-op" onclick="bienvAbrir()">Ver la bienvenida otra vez</button>
+    </div>`;
+}
+// ---------- bienvenida (solo la primera vez en este móvil; no toca el progreso ni la nube) ----------
+const BIENV_KEY = 'mi-ingles-bienvenida-vista';
+const BIENV_PASOS = [
+  ['🌱', 'Empieza desde cero', 'Tienes 60 unidades de A1 a C2, cada una con lecciones, diálogos y exámenes.'],
+  ['🔁', 'Repasa cada día', 'La app te recuerda lo que fallaste y te propone un repaso corto.'],
+  ['☁️', 'Tu progreso va contigo', 'Entra con tu cuenta en cualquier móvil y sigues donde lo dejaste.']
+];
+let BIENV_PASO = 0;
+function bienvVista(){ try { return localStorage.getItem(BIENV_KEY) !== null; } catch(e){ return true; } }
+function bienvFondo(quieto){                    // lo que queda detrás no se puede tocar ni enfocar mientras está la bienvenida
+  document.querySelectorAll('body > header, body > main').forEach(e => { e.inert = quieto; });
+  document.documentElement.style.overflow = quieto ? 'hidden' : '';
+}
+function bienvAbrir(){
+  if (document.getElementById('bienv')) return;
+  const d = document.createElement('div');
+  d.id = 'bienv'; d.className = 'bienv';
+  d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'bienv-titulo');
+  d.innerHTML = `<div class="bienv-top"><button type="button" class="bienv-saltar" onclick="bienvCerrar()">Saltar</button></div>
+    <div class="bienv-centro" id="bienv-centro" aria-live="polite"></div>
+    <div class="bienv-pie"><div class="bienv-puntos" id="bienv-puntos" role="img"></div>
+      <button type="button" class="btn bienv-sig" id="bienv-sig" onclick="bienvSiguiente()"></button></div>`;
+  document.body.appendChild(d);
+  bienvFondo(true);
+  BIENV_PASO = 0; bienvPintar();
+}
+function bienvPintar(){
+  const p = BIENV_PASOS[BIENV_PASO], n = BIENV_PASOS.length;
+  document.getElementById('bienv-centro').innerHTML =     // se crea de nuevo en cada paso: así entra con la animación
+    `<div class="bienv-paso"><div class="bienv-emoji" aria-hidden="true">${p[0]}</div><h2 id="bienv-titulo">${p[1]}</h2><p>${p[2]}</p></div>`;
+  const puntos = document.getElementById('bienv-puntos');
+  puntos.innerHTML = BIENV_PASOS.map((_, i) => `<span class="${i === BIENV_PASO ? 'on' : ''}"></span>`).join('');
+  puntos.setAttribute('aria-label', `Paso ${BIENV_PASO + 1} de ${n}`);
+  document.getElementById('bienv-sig').textContent = BIENV_PASO === n - 1 ? 'Empezar' : 'Siguiente';
+}
+function bienvSiguiente(){
+  if (BIENV_PASO >= BIENV_PASOS.length - 1) { bienvCerrar(); return; }
+  BIENV_PASO++; bienvPintar();
+}
+function bienvCerrar(){
+  try { localStorage.setItem(BIENV_KEY, '1'); } catch(e){}
+  const d = document.getElementById('bienv'); if (d) d.remove();
+  bienvFondo(false);
+}
 function dayStr(d){ return d.toISOString().slice(0,10); }
 function touch(){
   const t = dayStr(new Date());
@@ -372,7 +539,7 @@ function tts(text, cb){
   if (!('speechSynthesis' in window)) { if (cb) cb(); else alert('Este navegador no puede leer en voz alta.'); return; }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-GB'; u.rate = 0.9;
+  u.lang = 'en-GB'; u.rate = velAudio();
   if (cb) { u.onend = cb; u.onerror = cb; }
   const v = speechSynthesis.getVoices().find(x => /^en[-_]/i.test(x.lang));
   if (v) u.voice = v;
@@ -394,7 +561,7 @@ function speakLesson(uid, n, cb){
   const src = `audio/${uid}-lec${n}.mp3`;
   const a = new Audio(src);   // si existe el audio de VoiceStudio, se usa
   CUR_AUDIO = a;
-  a.playbackRate = 0.8;   // velocidad más lenta y clara para aprender
+  a.playbackRate = velAudio();   // velocidad del ajuste (por defecto 0,8: más lenta y clara)
   let fallado = false;
   const fallo = () => { if (fallado) return; fallado = true; audioFalla(src, fb, () => { avisoAudio(); end(); }); };   // sin conexión y sin descargar: aviso; otro fallo: voz del navegador, como antes
   a.onerror = fallo;
@@ -406,7 +573,7 @@ function dialogBlock(uid, n){
   const d = (DATA.dialogs || {})[uid + '-lec' + n];
   if (!d) return '';
   const lines = d.map(([who, t]) => `<p><b>${esc(who)}:</b> ${esc(t)}</p>`).join('');
-  return `<div class="rep"><div class="rep-title">🗣️ Diálogo</div>${lines}
+  return `<div class="rep dlg"><div class="rep-title">🗣️ Diálogo</div>${lines}
     <button class="btn ghost" id="dlg-btn" onclick="playDialog('${uid}',${n})">🔊 Escuchar el diálogo</button>
     <div class="fb bad" id="dlg-err"></div></div>`;
 }
@@ -418,7 +585,7 @@ function playDialog(uid, n){
   const src = `audio/${uid}-lec${n}-dialogo.mp3`;
   const a = new Audio(src);
   CUR_AUDIO = a;
-  a.playbackRate = 0.8;   // igual que las lecturas: velocidad más lenta y clara
+  a.playbackRate = velAudio();   // igual que las lecturas: velocidad del ajuste
   b.disabled = true;
   const back = () => { b.disabled = false; };
   a.onended = back;
@@ -583,7 +750,7 @@ function escOir(uid, n){
     const src = `audio/${uid}-lec${n}.mp3`;
     const a = new Audio(src);     // el mismo audio de la lectura, a la misma velocidad
     CUR_AUDIO = a;
-    a.playbackRate = 0.8;
+    a.playbackRate = velAudio();
     const fallo = err => {
       if (CUR_AUDIO !== a || (err && err.name === 'AbortError')) return;        // un audio que se cambió por otro no es un fallo
       const msg = t => { const e = document.getElementById('esc-err'); if (e) e.textContent = t; };
@@ -688,7 +855,9 @@ function quiz(q, kind, key, ref, idx){
   </div>`;
 }
 function answer(id, val){
-  const q = Q[id]; if (!q || q.answered) return;
+  const q = Q[id];
+  if (q && q.kind === 'sim') { simElegir(id, val); return; }   // simulacro: sin corrección y se puede cambiar
+  if (!q || q.answered) return;
   q.answered = true;
   const right = val === q.answer;
   sonar(right);
@@ -1245,6 +1414,34 @@ function viewSemana(){
     ${sug ? `<div class="card">${sug}</div>` : ''}`;
 }
 
+// ---------- estadísticas: SOLO LECTURA del progreso que ya existe (no guarda ni crea ningún campo) ----------
+function panelDatos(){
+  const niveles = DATA.levels.map(l => {
+    const us = UNITS.filter(u => u.level === l.code);
+    let hechas = 0, total = 0;
+    us.forEach(u => { const p = unitProgress(u.id); hechas += p.d; total += p.t; });   // la misma cuenta que se ve en cada unidad
+    return {code: l.code, hechas, total, aprobadas: levelDone(l.code), unidades: us.length};
+  });
+  const palabras = Object.values(tarjObj()).filter(t => t && (t.c === 5 || t.c === 6)).length;   // cajón 5 y las que ya lo superaron (6 = aprendida)
+  const st = S.streak || {}, viva = st.last === dayStr(new Date()) || st.last === dayStr(new Date(Date.now() - 864e5));   // mismas fechas que usa touch()
+  return {niveles, palabras, racha: viva && st.count > 0 ? st.count : 0,
+    lecciones: niveles.reduce((a, n) => a + n.hechas, 0), examenes: niveles.reduce((a, n) => a + n.aprobadas, 0)};
+}
+function viewEstadisticas(){
+  const r = panelDatos(), cab = `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>📊 Estadísticas</h2>`;
+  if (!r.lecciones && !r.examenes && !r.palabras && !r.racha) return `${cab}<div class="card center"><p class="semsug">Todavía no hay datos. Empieza una lección y vuelve aquí.</p></div>`;
+  const num = (n, t) => { const v = String(Number(n) || 0);          // las cifras largas se encogen para no partirse en dos líneas
+    return `<div class="pnl-num"><b${v.length >= 7 ? ' class="muylargo"' : v.length >= 5 ? ' class="largo"' : ''}>${v}</b><span>${t}</span></div>`; };
+  const barras = r.niveles.map(n => { const pct = n.total ? 100 * n.hechas / n.total : 0;
+    return `<div class="pnl-fila"><div class="pnl-lab"><span>${n.code} · ${n.hechas} de ${n.total} lecciones</span><b>${Math.floor(pct)}%</b></div>
+      <div class="bar" role="progressbar" aria-label="Lecciones de ${n.code}" aria-valuenow="${Math.floor(pct)}" aria-valuemin="0" aria-valuemax="100"><div style="width:${pct}%"></div></div></div>`; }).join('');
+  const examenes = r.niveles.map(n => `<p class="pnl-exa">${n.code} · ${n.aprobadas} de ${n.unidades} unidades</p>`).join('');
+  return `${cab}<div class="pnl-grid">${num(r.lecciones, r.lecciones === 1 ? 'lección terminada' : 'lecciones terminadas')}${num(r.examenes, r.examenes === 1 ? 'examen aprobado' : 'exámenes aprobados')}
+      ${num(r.palabras, r.palabras === 1 ? 'palabra aprendida' : 'palabras aprendidas')}${num(r.racha, r.racha === 1 ? 'día seguido de racha' : 'días seguidos de racha')}</div>
+    <div class="card"><h3>Lecciones por nivel</h3>${barras}</div>
+    <div class="card"><h3>Exámenes aprobados</h3>${examenes}</div>`;
+}
+
 // ---------- construir frases: ordenar las palabras de frases de los diálogos y lecturas de la unidad (solo práctica: no guarda nada) ----------
 const CF_N = 5, CF_MIN = 3, CF_MAX = 12;
 let CF = null;
@@ -1700,7 +1897,7 @@ function carReproducir(reanudar){
   carQuitarAudio(C);
   const t = C.tracks[C.i], tok = ++C.tok, a = new Audio(t.src);
   C.audio = a;
-  a.defaultPlaybackRate = a.playbackRate = C.slow ? CAR_LENTO : 1;
+  a.defaultPlaybackRate = a.playbackRate = C.slow ? CAR_LENTO : velAudio();
   const vigente = () => CAR === C && C.tok === tok;
   let fallado = false;
   const fallo = () => {
@@ -1755,13 +1952,220 @@ function carRepetir(){ if (!CAR) return; CAR.repeat = !CAR.repeat; carPintar(); 
 function carVelocidad(){
   if (!CAR) return;
   CAR.slow = !CAR.slow;
-  if (CAR.audio) { CAR.audio.defaultPlaybackRate = CAR.audio.playbackRate = CAR.slow ? CAR_LENTO : 1; }
+  if (CAR.audio) { CAR.audio.defaultPlaybackRate = CAR.audio.playbackRate = CAR.slow ? CAR_LENTO : velAudio(); }
   carPintar();
 }
 function viewCoche(){
   const u = U(CAR.uid);
   return `<div class="crumb" onclick="go('#/unit/${CAR.uid}')">← Unidad ${u.num}: ${esc(u.title)}</div><h2>🚗 Modo coche</h2>
     <div class="card" id="car-caja">${carCaja()}</div>`;
+}
+
+// ---------- cuaderno de notas: S.notas = {"a1-u1/7": "texto"}; va dentro del progreso (clave mi-ingles-v1), así que viaja a la nube con él ----------
+// No toca lecciones hechas, puntos ni logros: se guarda con persistirS(), sin revisar logros. Sin el campo «notas» (progreso viejo) se trata como vacío.
+const NOTA_MAX = 1000, NOTA_ESPERA = 1000;
+let NOTA_ABIERTA = null, NOTA_PEND = null, NOTA_T = null, NB_CONF = false;
+function notasObj(){ return S.notas && typeof S.notas === 'object' && !Array.isArray(S.notas) ? S.notas : {}; }
+function notaTexto(key){ const t = notasObj()[key]; return typeof t === 'string' ? t : ''; }
+function notaCaja(uid, n){
+  const key = uid + '/' + n, abierta = NOTA_ABIERTA === key, hay = !!notaTexto(key).trim();
+  return `<button type="button" class="btn ghost" aria-expanded="${abierta}" onclick="notaAbrir('${uid}',${n})">📓 Mi nota${hay ? ' <span class="tag ok">guardada</span>' : ''}</button>` +
+    (abierta ? `<textarea id="nota-txt" class="nota-txt" maxlength="${NOTA_MAX}" rows="5" aria-label="Mi nota de esta lección" placeholder="Escribe aquí lo que quieras recordar de esta lección." oninput="notaEscribir('${uid}',${n},this.value)">
+${esc(notaTexto(key))}</textarea><div class="nota-est" id="nota-est" role="status" aria-live="polite">${NOTA_PEND ? 'Guardando…' : 'Guardado'}</div>` : '');
+}
+function notaAbrir(uid, n){
+  const key = uid + '/' + n;
+  notaFlush();
+  NOTA_ABIERTA = NOTA_ABIERTA === key ? null : key;
+  const c = document.getElementById('nota-caja'); if (c) c.innerHTML = notaCaja(uid, n);
+  if (NOTA_ABIERTA) { const t = document.getElementById('nota-txt'); if (t) t.focus(); }
+}
+function notaEscribir(uid, n, v){
+  NOTA_PEND = {key: uid + '/' + n, texto: String(v).slice(0, NOTA_MAX)};
+  const e = document.getElementById('nota-est'); if (e) e.textContent = 'Guardando…';
+  clearTimeout(NOTA_T); NOTA_T = setTimeout(notaFlush, NOTA_ESPERA);       // se guarda 1 segundo después de dejar de escribir
+}
+function notaFlush(){
+  clearTimeout(NOTA_T); NOTA_T = null;
+  const p = NOTA_PEND; NOTA_PEND = null;
+  if (!p || !HAY_SESION || !UID_ACTUAL) return;
+  const nuevo = p.texto.trim() === '' ? '' : p.texto;
+  if (notaTexto(p.key) !== nuevo) {
+    const ob = notasObj() === S.notas ? S.notas : (S.notas = {});
+    if (nuevo === '') delete ob[p.key]; else ob[p.key] = nuevo;          // nota vacía: se borra la clave
+    persistirS();
+  }
+  const e = document.getElementById('nota-est'); if (e) e.textContent = 'Guardado';
+}
+window.addEventListener('pagehide', notaFlush);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') notaFlush(); });
+function notasLista(){          // [{uid, n, u, texto}] ordenadas por nivel, unidad y lección; las claves que no son de una lección real se ignoran
+  const r = [], ob = notasObj();
+  for (const key of Object.keys(ob)) {
+    const m = /^(.+)\/(\d+)$/.exec(key), t = ob[key];
+    const u = m && U(m[1]), n = m && +m[2];
+    if (!u || typeof t !== 'string' || !t.trim() || !u.lessons.some(l => l.n === n)) continue;
+    r.push({uid: u.id, n, u, texto: t});
+  }
+  return r.sort((a, b) => UNITS.indexOf(a.u) - UNITS.indexOf(b.u) || a.n - b.n);
+}
+function viewCuaderno(){
+  const cab = `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>📓 Mi cuaderno</h2>`;
+  const l = notasLista();
+  if (!l.length) return `${cab}<p class="pcap">Todavía no tienes notas. Escribe una en cualquier lección.</p>`;
+  const filas = l.map(x => {
+    const prev = x.texto.replace(/\s+/g, ' ').trim();
+    return `<div class="card nota-ent"><h3>${esc(x.u.level)} · Unidad ${esc(String(x.u.num))} · Lección ${x.n}</h3>
+      <p class="nota-prev">${esc(prev.length > 100 ? prev.slice(0, 100) + '…' : prev)}</p>
+      <a class="nota-ir" href="#/lesson/${esc(x.uid)}/${x.n}">Ir a la lección →</a></div>`;
+  }).join('');
+  const vaciar = NB_CONF
+    ? `<div class="card"><p class="fb bad" role="status">Se borrarán todas tus notas. Esto no se puede deshacer.</p>
+        <button class="btn peligro" onclick="nbVaciar()">Sí, borrar</button><button class="btn ghost" onclick="nbCancelar()">Cancelar</button></div>`
+    : `<button class="btn ghost" onclick="nbPedir()">🗑️ Vaciar cuaderno</button>`;
+  return `${cab}${filas}${vaciar}`;
+}
+function nbPedir(){ NB_CONF = true; render(); }
+function nbCancelar(){ NB_CONF = false; render(); }
+function nbVaciar(){
+  NB_CONF = false; NOTA_PEND = null; clearTimeout(NOTA_T);
+  S.notas = {}; persistirS(); render();
+}
+
+// ---------- mi perfil: S.perfil = {nombre, avatar, objetivo}; va dentro del progreso (clave mi-ingles-v1), así que viaja a la nube con él ----------
+// Sin el campo «perfil» (progreso viejo) o roto se trata como vacío. Las elecciones son un borrador hasta pulsar «Guardar».
+const PERF_AVATARES = ['🦊', '🐼', '🐸', '🦁', '🐵', '🐧', '🐯', '🦄'];
+const PERF_OBJETIVOS = ['viajar', 'trabajo', 'examen'];
+let PERF_BORR = null;                                   // borrador de la pantalla de perfil
+function perfilLeer(){
+  const p = S.perfil, r = {nombre: '', avatar: '🦊', objetivo: ''};
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return r;
+  if (typeof p.nombre === 'string') r.nombre = p.nombre.trim().slice(0, 20);
+  if (PERF_AVATARES.indexOf(p.avatar) >= 0) r.avatar = p.avatar;
+  if (PERF_OBJETIVOS.indexOf(p.objetivo) >= 0) r.objetivo = p.objetivo;
+  return r;
+}
+function perfilInicio(){                                // saludo de la pantalla de inicio: avatar + nombre; al tocarlo se abre el perfil
+  const p = perfilLeer();
+  const aviso = {examen: "Tu objetivo es el examen: empieza por el simulacro de tu nivel.", viajar: "Tu objetivo es viajar: prueba 'Frases de la vida real'.", trabajo: "Tu objetivo es el trabajo: prueba 'Expresiones'."}[p.objetivo];
+  return `<button type="button" class="perf-inicio" onclick="go('#/perfil')"><span class="perf-inicio-av">${p.avatar}</span><span class="perf-inicio-txt">Hola${p.nombre ? ', ' + esc(p.nombre) : ''} 👋</span></button>`
+    + (aviso ? `<p class="pcap perf-aviso">${aviso}</p>` : '');
+}
+function viewPerfil(){
+  if (!PERF_BORR) PERF_BORR = perfilLeer();
+  const av = PERF_AVATARES.map((a, i) => { const on = a === PERF_BORR.avatar; return `<button type="button" class="perf-av${on ? ' on' : ''}" data-av="${a}" aria-pressed="${on}" aria-label="Avatar ${i + 1}" onclick="perfAvatar('${a}')">${a}</button>`; }).join('');
+  const ob = [['viajar', '✈️ Viajar'], ['trabajo', '💼 Trabajo'], ['examen', '📝 Examen']]
+    .map(([k, t]) => { const on = k === PERF_BORR.objetivo; return `<button type="button" class="perf-obj${on ? ' on' : ''}" data-obj="${k}" aria-pressed="${on}" onclick="perfObjetivo('${k}')">${t}</button>`; }).join('');
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>👤 Mi perfil</h2>
+    <h3>Avatar</h3><div class="perf-avs">${av}</div>
+    <label class="perf-lab" for="perf-nombre">Tu nombre (hasta 20 letras)</label>
+    <input type="text" id="perf-nombre" class="perf-nombre" maxlength="20" autocomplete="off" value="${esc(PERF_BORR.nombre)}" oninput="perfNombre(this.value)">
+    <h3>Tu objetivo</h3><div class="perf-avs">${ob}</div>
+    <div style="margin-top:16px"><button type="button" class="btn perf-guardar" onclick="perfGuardar()">Guardar</button> <span id="perf-msg" class="perf-msg" role="status"></span></div>`;
+}
+function perfPintar(){                                  // solo actualiza botones y aviso; no repinta la pantalla (no se pierde el foco del nombre)
+  const d = PERF_BORR || perfilLeer();
+  document.querySelectorAll('[data-av]').forEach(b => { const on = b.dataset.av === d.avatar; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  document.querySelectorAll('[data-obj]').forEach(b => { const on = b.dataset.obj === d.objetivo; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  const m = document.getElementById('perf-msg'); if (m) m.textContent = '';
+}
+function perfAvatar(a){
+  if (PERF_BORR && PERF_AVATARES.indexOf(a) >= 0) PERF_BORR.avatar = a;
+  perfPintar();
+}
+function perfObjetivo(k){                               // pulsar el elegido otra vez lo quita
+  if (!PERF_BORR || PERF_OBJETIVOS.indexOf(k) < 0) return;
+  PERF_BORR.objetivo = PERF_BORR.objetivo === k ? '' : k;
+  perfPintar();
+}
+function perfNombre(v){
+  if (!PERF_BORR) return;
+  PERF_BORR.nombre = String(v).slice(0, 20);
+  const m = document.getElementById('perf-msg'); if (m) m.textContent = '';
+}
+function perfGuardar(){
+  if (!PERF_BORR) return;
+  S.perfil = {nombre: String(PERF_BORR.nombre).trim().slice(0, 20), avatar: PERF_BORR.avatar, objetivo: PERF_BORR.objetivo};
+  persistirS();
+  PERF_BORR = perfilLeer();
+  const inp = document.getElementById('perf-nombre'); if (inp) inp.value = PERF_BORR.nombre;
+  perfPintar();
+  const m = document.getElementById('perf-msg'); if (m) m.textContent = 'Perfil guardado';
+}
+
+// ---------- tarjetas de memoria con repaso espaciado (cajones de Leitner) ----------
+// S.tarjetas = {"A1|hello": {c: cajón 1 a 5 (6 = aprendida), d: 'AAAA-MM-DD' del próximo repaso}}; va dentro del progreso (clave mi-ingles-v1), así que viaja a la nube con él.
+// Se guarda con persistirS(), sin revisar logros: no cambia lecciones, puntos, errores ni palabras difíciles. Sin el campo «tarjetas» se trata como vacío.
+const TARJ_MAX = 10, TARJ_NUEVAS = 5, TARJ_DIAS = {2: 1, 3: 3, 4: 7, 5: 14};     // sesión: máx. 10 tarjetas, hasta 5 nuevas; días hasta el repaso de cada cajón
+let TJ = null;
+function tarjObj(){ return S.tarjetas && typeof S.tarjetas === 'object' && !Array.isArray(S.tarjetas) ? S.tarjetas : {}; }
+function tarjKey(code, e){ return code + '|' + e.w.trim().toLowerCase(); }
+function tarjDe(code, e){ const t = tarjObj()[tarjKey(code, e)]; return t && Number.isInteger(t.c) && t.c >= 1 && t.c <= 6 && typeof t.d === 'string' ? t : null; }
+function tarjGuardar(code, e, c, d){
+  const ob = tarjObj() === S.tarjetas ? S.tarjetas : (S.tarjetas = {});
+  ob[tarjKey(code, e)] = {c, d}; persistirS();
+}
+function fechaMas(n){ const d = new Date(), z = x => String(x).padStart(2, '0'); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+function tarjCola(code){          // primero las que tocan hoy (las más atrasadas antes), luego las nuevas por orden de aparición en las unidades
+  const L = glosarioNivel(code), hoy = fechaHoy(), deb = [], nue = [];
+  let ap = 0;
+  L.forEach(e => { const t = tarjDe(code, e); if (!t) nue.push(e); else if (t.c === 6) ap++; else if (t.d <= hoy) deb.push({e, c: t.c, d: t.d}); });
+  deb.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.c - b.c);
+  const orden = e => { const o = e.occ[0]; return o ? UNITS.indexOf(U(o.uid)) * 10 + o.n : 1e6; };
+  nue.sort((a, b) => orden(a) - orden(b));
+  const rev = deb.slice(0, TARJ_MAX).map(x => x.e), nuevas = nue.slice(0, Math.min(TARJ_NUEVAS, TARJ_MAX - rev.length));
+  return {cola: rev.concat(nuevas), pend: deb.length, nuevas: nuevas.length, aprendidas: ap, total: L.length};
+}
+function viewTarjetas(){
+  const btns = DATA.levels.map(l => { const r = tarjCola(l.code);
+    return `<button class="btn grande ghost" onclick="go('#/tarjetas/${l.code}')">${l.icon || ''} ${l.code} · ${esc(l.name)}<br><span class="pcap">${r.pend} para repasar hoy${r.nuevas ? ' · ' + r.nuevas + ' nuevas' : ''}</span></button>`; }).join('');
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>🃏 Tarjetas</h2><p class="pcap">Elige un nivel. Cada sesión tiene como máximo ${TARJ_MAX} tarjetas.</p>${btns}`;
+}
+function tjIniciar(){             // la primera vez que sale una palabra, queda en el cajón 1 (para hoy)
+  const e = TJ.cola[0];
+  if (e && !tarjDe(TJ.code, e)) tarjGuardar(TJ.code, e, 1, fechaHoy());
+}
+function tjNueva(code){
+  const r = tarjCola(code);
+  TJ = {code, cola: r.cola.slice(), total: r.cola.length, ver: false, fin: !r.cola.length};
+  tjIniciar();
+}
+function tjCaja(){
+  const e = TJ.cola[0], t = tarjDe(TJ.code, e);
+  return `<div class="tj"><div class="pcap">Quedan ${TJ.cola.length} · Cajón ${t ? t.c : 1}</div><div class="tj-w">${esc(e.w)}</div>
+    <div class="tj-fila"><button type="button" class="btn ghost" aria-label="Escuchar la palabra" title="Escuchar" onclick="tjOir()">🔊</button>
+      <button type="button" class="btn ghost" ${TJ.ver ? 'disabled' : ''} onclick="tjVer()">👀 Ver</button></div>
+    <div class="fb bad" id="tj-err" role="status"></div>
+    ${TJ.ver ? `<div class="tj-t">${esc(e.t || 'Sin traducción en el glosario')}</div>${e.ej ? `<p class="tj-ej">${esc(e.ej)}</p>` : ''}` : ''}
+    <div class="tj-fila tj-resp"><button type="button" class="btn" onclick="tjResp(true)">✅ Lo sé</button><button type="button" class="btn ghost" onclick="tjResp(false)">❌ No lo sé</button></div></div>`;
+}
+function tjPintar(){ const c = document.getElementById('tj-caja'); if (c && TJ && !TJ.fin) c.innerHTML = tjCaja(); }
+function tjVer(){ if (TJ && !TJ.fin) { TJ.ver = true; tjPintar(); } }
+function tjOir(){
+  const er = document.getElementById('tj-err'); if (er) er.textContent = '';
+  if (!TJ || TJ.fin || !TJ.cola.length) return;
+  if (!vozDisponible()) { if (er) er.textContent = 'Tu navegador no puede leer en voz alta.'; return; }
+  try { tts(TJ.cola[0].w); } catch(err){}
+}
+function tjResp(sabe){
+  if (!TJ || TJ.fin || !TJ.cola.length) return;
+  const e = TJ.cola.shift(), t = tarjDe(TJ.code, e) || {c: 1};
+  if (sabe) { if (t.c >= 5) tarjGuardar(TJ.code, e, 6, ''); else { const c = t.c + 1; tarjGuardar(TJ.code, e, c, fechaMas(TARJ_DIAS[c])); } }    // sube un cajón; acertar en el 5 = aprendida
+  else { tarjGuardar(TJ.code, e, 1, fechaHoy()); TJ.cola.push(e); }                                                                       // vuelve al cajón 1 y sale otra vez al final de la sesión
+  TJ.ver = false;
+  if (!TJ.cola.length) { TJ.fin = true; render(); return; }
+  tjIniciar(); tjPintar();
+}
+function viewTarjeta(){
+  const lv = DATA.levels.find(l => l.code === TJ.code);
+  const cab = `<div class="crumb" onclick="go('#/tarjetas')">← Tarjetas</div><h2>🃏 ${TJ.code} · ${esc(lv.name)}</h2>`;
+  if (TJ.fin) {
+    const x = TJ.total, y = tarjCola(TJ.code).aprendidas;
+    return TJ.total === 0
+      ? `${cab}<div class="card center"><p>Hoy no hay tarjetas para repasar en este nivel. Vuelve mañana.</p><button class="btn" onclick="go('#/tarjetas')">Volver</button></div>`
+      : `${cab}<div class="card center"><div class="big">🎉</div><h3>Has repasado ${x} ${x === 1 ? 'tarjeta' : 'tarjetas'}. ${y} ${y === 1 ? 'palabra aprendida' : 'palabras aprendidas'}.</h3><button class="btn" onclick="go('#/tarjetas')">Volver</button></div>`;
+  }
+  return `${cab}<div class="card" id="tj-caja">${tjCaja()}</div>`;
 }
 
 // ---------- panel de códigos de invitación (solo administrador) ----------
@@ -2696,7 +3100,7 @@ function viewHome(){
   }).join('');
   const bl = badges().map(b => `<span class="badge ${b.on ? 'on' : ''}">${b.on ? '🏅' : '🔒'} ${esc(b.name)}</span>`).join('');
   const N = S.nivel;
-  const estBtn = `<button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="faNueva();go('#/falsos')">🪤 Falsos amigos</button> <button class="btn ghost" onclick="exInicio();go('#/expresiones')">🗣️ Expresiones</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button>`
+  const estBtn = `<button class="btn ghost" onclick="go('#/perfil')">👤 Mi perfil</button> <button class="btn ghost" onclick="go('#/empezar')">🧭 ¿Por dónde empiezo?</button> <button class="btn ghost" onclick="go('#/mapa')">🗺️ Mapa</button> <button class="btn ghost" onclick="go('#/glosario')">📖 Glosario</button> <button class="btn ghost" onclick="faNueva();go('#/falsos')">🪤 Falsos amigos</button> <button class="btn ghost" onclick="exInicio();go('#/expresiones')">🗣️ Expresiones</button> <button class="btn ghost" onclick="go('#/semana')">📊 Mi semana</button> <button class="btn ghost" onclick="go('#/estadisticas')">📊 Estadísticas</button> <button class="btn ghost" onclick="go('#/cuaderno')">📓 Mi cuaderno</button> <button class="btn ghost" onclick="go('#/tarjetas')">🃏 Tarjetas</button> <button class="btn ghost" onclick="go('#/simulacro')">📝 Simulacro</button> <button class="btn ghost" onclick="go('#/ajustes')">⚙️ Ajustes</button>`
     + (N ? ` <span class="pcap" style="cursor:pointer" onclick="go('#/sugerencia')">Último resultado: ${N.level}, unidad ${N.num} (ver)</span>` : '');
   const nDif = difOrdenadas().length;
   const difBtn = nDif ? `<div style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/dificiles')">⭐ Palabras difíciles (${nDif})</button></div>` : '';
@@ -2705,7 +3109,7 @@ function viewHome(){
   const repBtn = !hayAprobadas() ? '' : repasoHechoHoy()
     ? `<div style="margin-bottom:10px"><button class="btn ghost" disabled>Repaso hecho hoy ✔</button> <span class="pcap">${repasoGuardado().aciertos} de ${repasoGuardado().total}</span></div>`
     : `<div style="margin-bottom:10px"><button class="btn" onclick="go('#/repaso')">🔁 Repaso de hoy</button></div>`;
-  return `${continueButton()}${palabraDelDia()}<div style="margin-bottom:10px">${estBtn}</div>${repBtn}${difBtn}${errBtn}<h2>Elige tu nivel</h2><div class="grid">${cards}</div>
+  return `${perfilInicio()}${continueButton()}${palabraDelDia()}<div style="margin-bottom:10px">${estBtn}</div>${repBtn}${difBtn}${errBtn}<h2>Elige tu nivel</h2><div class="grid">${cards}</div>
     ${esAdmin() ? `<div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/codigos')">🎟️ Códigos de invitación</button></div>` : ''}
     <div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/desafio')">⏱️ Desafío de 60 segundos</button> <button class="btn ghost" onclick="go('#/emparejar')">🧩 Emparejar palabras</button></div>
     <div class="center" style="margin-bottom:10px"><button class="btn ghost" onclick="go('#/descargas')">📥 Descargar para estudiar sin conexión</button><p class="pcap" id="desc-home"></p></div>
@@ -2832,7 +3236,7 @@ function viewLesson(uid, n){
     if (s.key === 'Respuestas') continue;                       // se muestra con "ver respuestas"
     if (s.key === 'Ejercicio' && l.exercise) continue;         // se muestra como pregunta interactiva
     const isList = /^Notas|^Otros/.test(s.key);
-    html += `<div class="sec"><h3>${esc(s.key)}${/^Lectura/.test(s.key) ? `<button class="speak" title="Escuchar" onclick="speakLesson('${uid}',${n})">🔊</button>` : ''}</h3>`;
+    html += `<div class="sec${/^Lectura/.test(s.key) ? ' sec-lectura' : ''}"><h3>${esc(s.key)}${/^Lectura/.test(s.key) ? `<button class="speak" title="Escuchar" onclick="speakLesson('${uid}',${n})">🔊</button>` : ''}</h3>`;
     if (isList) html += '<ul>' + s.items.map(i => `<li>${md(i)}</li>`).join('') + '</ul>';
     else if (/^Vocabulario/.test(s.key)) html += vocabHtml(uid, n, s.items, cv);
     else html += s.items.map(i => `<p>${md(i)}</p>`).join('');
@@ -2860,6 +3264,7 @@ function viewLesson(uid, n){
   if (n < 7) nav.push(`<button class="btn" onclick="go('#/lesson/${uid}/${n+1}')">Siguiente →</button>`);
   if (n === 7) nav.push(`<button class="btn" onclick="go('#/exam/${uid}')">Ir al examen →</button>`);
   html += `<div class="center">${nav.join('')}</div>`;
+  html += `<div class="nota" id="nota-caja">${notaCaja(uid, n)}</div>`;
   return html;
 }
 function markDone(key){ fechaLeccion(key); S.done[key] = true; touch(); save(); render(); }
@@ -3008,9 +3413,107 @@ function viewSugerencia(){
     </div>`;
 }
 
+// ---------- Simulacro (20 preguntas de los exámenes de un nivel, 20 minutos, sin corregir hasta entregar) ----------
+const SIM_N = 20, SIM_MIN = 20, SIM_APRUEBA = 14;
+let SIM = null;      // {level, items:[{q, uid}], resp:[], i, ini, fin, timer, conf, estado:'jugando'|'fin', res}
+function simCancelar(){
+  if (SIM && SIM.timer) clearInterval(SIM.timer);
+  SIM = null;
+}
+function simNueva(code){
+  simCancelar();
+  const pool = [];
+  UNITS.filter(u => u.level === code).forEach(u => u.exam.forEach(q => pool.push({q, uid: u.id})));
+  const items = shuffle(pool).slice(0, SIM_N);      // sin repetir; si hay menos de 20, todas las que haya
+  const ini = Date.now();
+  SIM = {level: code, items, resp: items.map(() => null), i: 0, ini, fin: ini + SIM_MIN * 60000, timer: null, conf: false, estado: 'jugando', res: null};
+  SIM.timer = setInterval(simTick, 1000);
+}
+function simMMSS(ms){
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+function simTick(){
+  if (!SIM || SIM.estado !== 'jugando') return;
+  const r = SIM.fin - Date.now();
+  const t = document.getElementById('sim-t');
+  if (t) { t.textContent = simMMSS(r); t.classList.toggle('poco', r <= 60000); }   // solo el texto: no se repinta la pantalla
+  if (r <= 0) simEntregar(true);
+}
+function simElegir(id, val){
+  if (!SIM || SIM.estado !== 'jugando') return;
+  SIM.resp[SIM.i] = val; SIM.conf = false;
+  const box = document.getElementById('box-' + id);
+  if (box) box.querySelectorAll('.opt').forEach(b => b.classList.toggle('sel', b.dataset.v === val));
+  const n = document.getElementById('sim-n' + SIM.i);
+  if (n) n.classList.add('hecha');
+  const c = document.getElementById('sim-conf');
+  if (c) c.remove();
+}
+function simIr(i){
+  if (!SIM || SIM.estado !== 'jugando' || i < 0 || i >= SIM.items.length) return;
+  SIM.i = i; SIM.conf = false; render();
+}
+function simPedirEntrega(){
+  if (!SIM || SIM.estado !== 'jugando') return;
+  if (SIM.resp.some(r => r === null)) { SIM.conf = true; render(); }
+  else simEntregar(false);
+}
+function simEntregar(){
+  if (!SIM || SIM.estado !== 'jugando') return;
+  if (SIM.timer) { clearInterval(SIM.timer); SIM.timer = null; }
+  const usado = Math.min(Date.now(), SIM.fin) - SIM.ini;
+  let ok = 0; const fallos = [];
+  SIM.items.forEach((it, k) => {
+    if (SIM.resp[k] === it.q.answer) ok++;
+    else { fallos.push({it, resp: SIM.resp[k]}); registrarError({uid: it.uid, n: 0}, it.q, false); }   // mismo formato e id que los exámenes normales
+  });
+  SIM.estado = 'fin'; SIM.conf = false; SIM.res = {ok, total: SIM.items.length, usado, fallos};
+  render();
+}
+function viewSimNiveles(){
+  const btns = DATA.levels.map(l =>
+    `<button class="btn grande ghost" onclick="go('#/simulacro/${l.code}')">${l.icon || ''} ${l.code} · ${esc(l.name)}</button>`).join('');
+  return `<div class="crumb" onclick="go('#/')">← Inicio</div><h2>📝 Simulacro</h2><p class="pcap">Elige un nivel. ${SIM_N} preguntas de los exámenes, ${SIM_MIN} minutos y no se corrige hasta entregar.</p>${btns}`;
+}
+function viewSimulacro(){
+  const cab = `<div class="crumb" onclick="go('#/simulacro')">← Simulacro</div>`;
+  if (SIM.estado === 'fin') {
+    const r = SIM.res, pct = r.total ? Math.round(100 * r.ok / r.total) : 0, pasa = r.ok >= SIM_APRUEBA;
+    const fl = r.fallos.map(f => `<div class="sim-fallo"><div class="stem">${esc(f.it.q.stem).replace(/___/g, '<span class="blank"></span>')}</div>
+      <div>Tu respuesta: <b>${f.resp === null ? 'Sin contestar' : esc(f.resp)}</b></div><div>Correcta: <b>${esc(f.it.q.answer)}</b></div></div>`).join('');
+    return `${cab}<div class="card center"><h2>📝 Simulacro ${SIM.level}</h2>
+      <div class="big">${r.ok} de ${r.total} · ${pct}%</div>
+      <h3>${pasa ? '✅ Aprobado' : 'Todavía no'}</h3>
+      <p>Tiempo usado: ${simMMSS(r.usado)}</p>
+      <button class="btn" onclick="simNueva('${SIM.level}');render()">Repetir simulacro</button>
+      <button class="btn ghost" onclick="go('#/')">Volver al menú</button></div>
+      ${r.fallos.length ? `<div class="card"><h3>Preguntas falladas (${r.fallos.length})</h3>${fl}</div>` : ''}`;
+  }
+  const n = SIM.items.length, sinResp = SIM.resp.filter(x => x === null).length;
+  const chips = SIM.items.map((_, k) =>
+    `<button class="sim-n ${SIM.resp[k] !== null ? 'hecha' : ''} ${k === SIM.i ? 'act' : ''}" id="sim-n${k}" onclick="simIr(${k})" aria-label="Pregunta ${k + 1}">${k + 1}</button>`).join('');
+  const sel = SIM.resp[SIM.i];
+  let qh = quiz(SIM.items[SIM.i].q, 'sim', null, null, SIM.i);
+  if (sel !== null) qh = qh.replace(`class="opt" data-v="${esc(sel)}"`, `class="opt sel" data-v="${esc(sel)}"`);
+  const conf = SIM.conf ? `<div class="card" id="sim-conf"><p>Quedan ${sinResp} ${sinResp === 1 ? 'pregunta sin contestar' : 'preguntas sin contestar'}. ¿Entregar igualmente?</p>
+      <button class="btn" onclick="simEntregar()">Sí, entregar</button><button class="btn ghost" onclick="SIM.conf=false;render()">Seguir</button></div>` : '';
+  return `${cab}<div class="sim-top"><div class="sim-t" id="sim-t">${simMMSS(SIM.fin - Date.now())}</div><div class="sim-nums">${chips}</div></div>
+    <div class="card"><h3>Pregunta ${SIM.i + 1} de ${n}</h3>${qh}</div>
+    <div class="sim-nav"><button class="btn ghost" ${SIM.i === 0 ? 'disabled' : ''} onclick="simIr(${SIM.i - 1})">← Anterior</button>
+      <button class="btn ghost" ${SIM.i >= n - 1 ? 'disabled' : ''} onclick="simIr(${SIM.i + 1})">Siguiente →</button></div>
+    ${conf}<button class="btn" onclick="simPedirEntrega()">Entregar</button>`;
+}
+
 // ---------- enrutado ----------
 function render(){
-  if (CAR && !location.hash.startsWith('#/coche/')) carParar();      // al salir del modo coche, la reproducción se para
+  if (NOTA_PEND) notaFlush();                                     // una nota a medio escribir se guarda antes de cambiar de pantalla
+  if (NOTA_ABIERTA && location.hash !== '#/lesson/' + NOTA_ABIERTA) NOTA_ABIERTA = null;
+  if (NB_CONF && !location.hash.startsWith('#/cuaderno')) NB_CONF = false;
+  if (PERF_BORR && !location.hash.startsWith('#/perfil')) PERF_BORR = null;   // al salir del perfil, el borrador no guardado se descarta
+  if (TJ && !location.hash.startsWith('#/tarjetas/')) TJ = null;      // al salir de una sesión de tarjetas, la siguiente empieza de cero (lo contestado ya está guardado)
+  if (SIM && !location.hash.startsWith('#/simulacro/')) simCancelar();   // salir a mitad: se cancela y no se guarda nada
+  if (CAR &&!location.hash.startsWith('#/coche/')) carParar();      // al salir del modo coche, la reproducción se para
   if (!HAY_SESION) { pintarEntrada(); return; }          // sin sesión no se muestra nada más que la entrada
   document.body.classList.remove('sin-sesion');
   logrosInicio();
@@ -3021,6 +3524,17 @@ function render(){
   else if (h[0] === 'frases') { if (!U(h[1])) html = viewHome(); else { if (!CF || CF.uid !== h[1]) cfNueva(h[1]); html = '<div class="leccion">' + viewFrases() + '</div>'; } }
   else if (h[0] === 'ahorcado') { if (!U(h[1])) html = viewHome(); else { if (!AH || AH.uid !== h[1]) ahNueva(h[1]); html = '<div class="leccion">' + viewAhorcado() + '</div>'; } }
   else if (h[0] === 'expresiones') { if (!EXS) exInicio(); html = '<div class="leccion">' + viewExpresiones() + '</div>'; }
+  else if (h[0] === 'tarjetas') {
+    if (!h[1] || !DATA.levels.some(l => l.code === h[1])) html = '<div class="leccion">' + viewTarjetas() + '</div>';
+    else { if (!TJ || TJ.code !== h[1]) tjNueva(h[1]); html = '<div class="leccion">' + viewTarjeta() + '</div>'; }
+  }
+  else if (h[0] === 'simulacro') {
+    if (!h[1] || !DATA.levels.some(l => l.code === h[1])) html = '<div class="leccion">' + viewSimNiveles() + '</div>';
+    else { if (!SIM || SIM.level !== h[1]) simNueva(h[1]); html = '<div class="leccion">' + viewSimulacro() + '</div>'; }
+  }
+  else if (h[0] === 'ajustes') html = '<div class="leccion">' + viewAjustes() + '</div>';
+  else if (h[0] === 'cuaderno') html = '<div class="leccion">' + viewCuaderno() + '</div>';
+  else if (h[0] === 'perfil') html = '<div class="leccion">' + viewPerfil() + '</div>';
   else if (h[0] === 'coche') { if (!U(h[1])) html = viewHome(); else { if (!CAR || CAR.uid !== h[1]) carNueva(h[1]); html = '<div class="leccion">' + viewCoche() + '</div>'; } }
   else if (h[0] === 'falsos') { if (!FA) faNueva(); html = '<div class="leccion">' + viewFalsos() + '</div>'; }
   else if (h[0] === 'codigos') html = esAdmin() ? '<div class="leccion">' + viewCodigos() + '</div>' : viewHome();      // solo existe para el administrador
@@ -3029,6 +3543,7 @@ function render(){
   else if (h[0] === 'descargas') html = '<div class="leccion">' + viewDescargas() + '</div>';
   else if (h[0] === 'logros') html = '<div class="leccion">' + viewLogros() + '</div>';
   else if (h[0] === 'semana') html = '<div class="leccion">' + viewSemana() + '</div>';
+  else if (h[0] === 'estadisticas') html = '<div class="leccion">' + viewEstadisticas() + '</div>';
   else if (h[0] === 'glosario') html = '<div class="leccion">' + (h[1] ? viewGlosario(h[1]) : viewGlosarioNiveles()) + '</div>';
   else if (h[0] === 'mapa') html = h[1] ? viewMapa(h[1]) : viewMapaNiveles();
   else if (h[0] === 'unit') html = viewUnit(h[1]);
@@ -3051,6 +3566,7 @@ function render(){
 window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/desafio')) desCancelar(); });   // salir a mitad: se cancela y no se guarda nada
 window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/exam') && !location.hash.startsWith('#/empezar')) EXS = null; if (!location.hash.startsWith('#/repaso')) REP = null; render(); });
 render();
+if (!bienvVista()) bienvAbrir();           // primera vez en este móvil: por encima de la entrada o del menú
 
 // Modo app: permite instalarla y usarla sin conexión
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
